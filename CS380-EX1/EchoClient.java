@@ -23,6 +23,7 @@ public final class EchoClient {
 
             while (!(msg.equals("exit")))
             {
+               // Prompt for client input
                 System.out.printf("Client> ");
                 msg = sc.nextLine();
                 out.printf("%s%n", msg);
@@ -30,6 +31,7 @@ public final class EchoClient {
 
                 if(!(msg.equals("exit")))
                 {
+                   // The server will echo
                     System.out.println("Server> " + msg);
                 }
             }
