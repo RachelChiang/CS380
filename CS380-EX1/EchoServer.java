@@ -7,8 +7,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
 
-public final class EchoServer {
-
+public final class EchoServer
+{
     private static class ServerThread implements Runnable
     {
         private Socket socket;
@@ -16,7 +16,7 @@ public final class EchoServer {
         {
             this.socket = socket;
         }
-        
+
         @Override
         public void run()
         {
@@ -26,7 +26,6 @@ public final class EchoServer {
                 OutputStream os = socket.getOutputStream();
                 PrintStream out = new PrintStream(os, true, "UTF-8");
 
-                //out.printf("Hi %s, thanks for connecting!%n", address);
                 InputStream is = socket.getInputStream();
                 InputStreamReader isr = new InputStreamReader(is, "UTF-8");
                 BufferedReader br = new BufferedReader(isr);
@@ -49,6 +48,7 @@ public final class EchoServer {
             try {
                 while (true)
                 {
+                   // Starts a new thread whenever a client connects
                     (new Thread(new ServerThread(serverSocket.accept()))).start();
                 }
             } finally {

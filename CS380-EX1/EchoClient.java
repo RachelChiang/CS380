@@ -15,8 +15,6 @@ public final class EchoClient {
             InputStreamReader isr = new InputStreamReader(is, "UTF-8");
             BufferedReader br = new BufferedReader(isr);
 
-            // System.out.println(br.readLine());
-
             OutputStream os = socket.getOutputStream();
             PrintStream out = new PrintStream(os, true, "UTF-8");
 
