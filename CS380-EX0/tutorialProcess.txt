@@ -1,0 +1,535 @@
+Author: Rachel Chiang <rchiang@cpp.edu>
+Date:   Sun Apr 2 14:12:11 2017 -0700
+
+    revision one (lynda tutorial example)
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ git branch
+  alternate
+  app01
+* master
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ git merge app01
+Updating 74e37af..12fd521
+Fast-forward
+ index.html | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ clear
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ log
+bash: log: command not found
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ git log
+commit 12fd52148797c091812a3aa13e5681ac90d10ae5
+Author: Rachel Chiang <rchiang@cpp.edu>
+Date:   Sun Apr 2 14:30:24 2017 -0700
+
+    revision four (lynda tutorial example)
+
+commit 74e37af9bfe1f2c6f05bc874f0c24c369d6aa120
+Author: Rachel Chiang <rchiang@cpp.edu>
+Date:   Sun Apr 2 14:17:32 2017 -0700
+
+    revision three (lynda tutorial example)
+
+commit 24c545c3e3fe9434b151a9a18225d5dc6a715b77
+Author: Rachel Chiang <rchiang@cpp.edu>
+Date:   Sun Apr 2 14:16:50 2017 -0700
+
+    revision two (lynda tutorial example)
+
+commit 2aa5eabd90d6ec3dfd9ed41a144ab9ef37f8f975
+Author: Rachel Chiang <rchiang@cpp.edu>
+Date:   Sun Apr 2 14:12:11 2017 -0700
+
+    revision one (lynda tutorial example)
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ git branch
+  alternate
+  app01
+* master
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ git branch -m app01 app1
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ git branch
+  alternate
+  app1
+* master
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ git branch -D alternate
+Deleted branch alternate (was cf6b9fa).
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ git branch
+  app1
+* master
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ ls
+about.html  index.html
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ git clone https://github.com/planetoftheweb/angulardata.git
+Cloning into 'angulardata'...
+remote: Counting objects: 1035, done.
+remote: Total 1035 (delta 0), reused 0 (delta 0), pack-reused 1035
+Receiving objects: 100% (1035/1035), 2.33 MiB | 2.10 MiB/s, done.
+Resolving deltas: 100% (501/501), done.
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ git status
+On branch master
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+        angulardata/
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ cd angulardata
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/angulardata (master)
+$ ls
+builds/  gulpfile.js  hero.png  package.json  README.md
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/angulardata (master)
+$ npm install
+bash: npm: command not found
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/angulardata (master)
+$ gulp
+bash: gulp: command not found
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/angulardata (master)
+$ git status
+On branch master
+Your branch is up-to-date with 'origin/master'.
+nothing to commit, working tree clean
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/angulardata (master)
+$ git log
+commit b48c1b803f6f74492948020759a7cc4e87f04a1b
+Author: Ray Villalobos <ray@lynda.com>
+Date:   Sat Nov 19 23:59:21 2016 -0500
+
+    04_06e Security Rules
+
+commit cc5f56f1d83dff8f67b97d648c040bfc3a19fbdc
+Author: Ray Villalobos <ray@lynda.com>
+Date:   Sat Nov 19 22:32:15 2016 -0500
+
+    04_05e Conditional Styles
+
+commit dc0d7146c60a4c08f35ffe2cd73d77588dd8ab1a
+Author: Ray Villalobos <ray@lynda.com>
+Date:   Sat Nov 19 22:10:04 2016 -0500
+
+    04_04e Deleting Checkins
+
+commit 52cae5fdd438175ccab3d34b9a27b010c8b2a4c5
+Author: Ray Villalobos <ray@lynda.com>
+Date:   Sat Nov 19 20:31:04 2016 -0500
+
+    04_03e Adding Gift Information
+commit b48c1b803f6f74492948020759a7cc4e87f04a1b
+Author: Ray Villalobos <ray@lynda.com>
+Date:   Sat Nov 19 23:59:21 2016 -0500
+
+    04_06e Security Rules
+
+commit cc5f56f1d83dff8f67b97d648c040bfc3a19fbdc
+Author: Ray Villalobos <ray@lynda.com>
+Date:   Sat Nov 19 22:32:15 2016 -0500
+
+    04_05e Conditional Styles
+
+commit dc0d7146c60a4c08f35ffe2cd73d77588dd8ab1a
+Author: Ray Villalobos <ray@lynda.com>
+Date:   Sat Nov 19 22:10:04 2016 -0500
+
+    04_04e Deleting Checkins
+
+commit 52cae5fdd438175ccab3d34b9a27b010c8b2a4c5
+Author: Ray Villalobos <ray@lynda.com>
+Date:   Sat Nov 19 20:31:04 2016 -0500
+
+    04_03e Adding Gift Information
+:Stopped
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/angulardata (master)
+it branch
+bash: it: command not found
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/angulardata (master)
+$ git branch
+* master
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/angulardata (master)
+$ cd
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~
+$ cd^C
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~
+$ cd ~/Documents/School/2016-2017/Q3Spring17/CS380/project/
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ ls
+about.html  angulardata/  index.html
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ git rm angulardata
+fatal: pathspec 'angulardata' did not match any files
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ rm angulardata/
+rm: cannot remove 'angulardata/': Is a directory
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ rmdir angulardata/
+rmdir: failed to remove 'angulardata/': Directory not empty
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ git status
+On branch master
+nothing to commit, working tree clean
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ git clone https://github.com/planetoftheweb/responsivebootstrap.git
+Cloning into 'responsivebootstrap'...
+remote: Counting objects: 262, done.
+remote: Total 262 (delta 0), reused 0 (delta 0), pack-reused 262
+Receiving objects: 100% (262/262), 8.06 MiB | 2.06 MiB/s, done.
+Resolving deltas: 100% (90/90), done.
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ cd responsivebootstrap
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (master)
+$ ls
+builds/  gulpfile.js  hero.png  license.txt  package.json  README.md
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (master)
+$ git status
+On branch master
+Your branch is up-to-date with 'origin/master'.
+nothing to commit, working tree clean
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (master)
+$ git branch
+* master
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (master)
+$ git branch -a
+* master
+  remotes/origin/00_start
+  remotes/origin/01_02
+  remotes/origin/01_03
+  remotes/origin/01_04
+  remotes/origin/01_05
+  remotes/origin/01_06
+  remotes/origin/01_07
+  remotes/origin/01_08
+  remotes/origin/01_09
+  remotes/origin/01_10
+  remotes/origin/01_bootstrap
+  remotes/origin/02_01
+  remotes/origin/02_02
+  remotes/origin/02_03
+  remotes/origin/02_04
+  remotes/origin/02_05
+  remotes/origin/02_06
+  remotes/origin/02_07
+  remotes/origin/02_08
+  remotes/origin/02_08p
+  remotes/origin/02_09
+  remotes/origin/02_10
+  remotes/origin/03_01
+  remotes/origin/03_02
+  remotes/origin/03_03
+  remotes/origin/03_04
+  remotes/origin/03_05
+  remotes/origin/03_06
+  remotes/origin/03_07
+  remotes/origin/03_07b
+  remotes/origin/99_target
+  remotes/origin/HEAD -> origin/master
+  remotes/origin/master
+  remotes/origin/post_release_changes
+  remotes/origin/work
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (master)
+$ git checkout -b 02_01 origin/02_01
+Switched to a new branch '02_01'
+Branch 02_01 set up to track remote branch 02_01 from origin.
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (02_01)
+$ git branch
+* 02_01
+  master
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (02_01)
+$ git checkout master
+Switched to branch 'master'
+Your branch is up-to-date with 'origin/master'.
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (master)
+$ cd  ~/Documents/School/2016-2017/Q3Spring17/CS380/project/
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ ls
+about.html  index.html  responsivebootstrap/
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ git status
+On branch master
+nothing to commit, working tree clean
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ mkdir responsivebootstrap
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ cd responsivebootstrap
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (master)
+$ git clone --mirror https://github.com/planetoftheweb/responsivebootstrap.git .git
+Cloning into bare repository '.git'...
+remote: Counting objects: 262, done.
+remote: Total 262 (delta 0), reused 0 (delta 0), pack-reused 262
+Receiving objects: 100% (262/262), 8.06 MiB | 7.48 MiB/s, done.
+Resolving deltas: 100% (90/90), done.
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (master)
+$ ls
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (master)
+$ ls -l
+total 0
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (master)
+$ pwd
+/c/Users/Rachel/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (master)
+$ git config --bool core.bare false
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (master)
+$ git reset --hard
+HEAD is now at 0754a9f Update README.md
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (master)
+$ ls
+builds/  gulpfile.js  hero.png  license.txt  package.json  README.md
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (master)
+$ git branch
+  00_start
+  01_02
+  01_03
+  01_04
+  01_05
+  01_06
+  01_07
+  01_08
+  01_09
+  01_10
+  01_bootstrap
+  02_01
+  02_02
+  02_03
+  02_04
+  02_05
+  02_06
+  02_07
+  02_08
+  02_08p
+  02_09
+  02_10
+  03_01
+  03_02
+  03_03
+  03_04
+  03_05
+  03_06
+  03_07
+  03_07b
+  99_target
+* master
+  post_release_changes
+  work
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ git clone -b 00_start https://github.com/planetoftheweb/responsivebootstrap.git
+Cloning into 'responsivebootstrap'...
+remote: Counting objects: 262, done.
+remote: Total 262 (delta 0), reused 0 (delta 0), pack-reused 262
+Receiving objects: 100% (262/262), 8.06 MiB | 4.15 MiB/s, done.
+Resolving deltas: 100% (90/90), done.
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ git log
+commit 12fd52148797c091812a3aa13e5681ac90d10ae5
+Author: Rachel Chiang <rchiang@cpp.edu>
+Date:   Sun Apr 2 14:30:24 2017 -0700
+
+    revision four (lynda tutorial example)
+
+commit 74e37af9bfe1f2c6f05bc874f0c24c369d6aa120
+Author: Rachel Chiang <rchiang@cpp.edu>
+Date:   Sun Apr 2 14:17:32 2017 -0700
+
+    revision three (lynda tutorial example)
+
+commit 24c545c3e3fe9434b151a9a18225d5dc6a715b77
+Author: Rachel Chiang <rchiang@cpp.edu>
+Date:   Sun Apr 2 14:16:50 2017 -0700
+
+    revision two (lynda tutorial example)
+
+commit 2aa5eabd90d6ec3dfd9ed41a144ab9ef37f8f975
+Author: Rachel Chiang <rchiang@cpp.edu>
+Date:   Sun Apr 2 14:12:11 2017 -0700
+
+    revision one (lynda tutorial example)
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ cd responsivebootstrap
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (00_start)
+$ ls
+builds/  gulpfile.js  license.txt  package.json  README.md
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (00_start)
+$ git log
+commit e806da84a63c19518e1d399d2400a1d6e4737964
+Author: Ray Villalobos <ray@planetoftheweb.com>
+Date:   Mon Dec 15 15:19:49 2014 -0800
+
+    01_04 Using Rows & Columns
+
+commit f3cf9e36406718a45113439f9794447295454e51
+Author: Ray Villalobos <ray@planetoftheweb.com>
+Date:   Mon Dec 15 14:09:43 2014 -0800
+
+    01_03
+
+commit e7c305f4f9c14072ce0bd512853f3d6c51d2380e
+Author: Ray Villalobos <ray@planetoftheweb.com>
+Date:   Fri Dec 12 17:41:03 2014 -0800
+
+    start without any bootstrap
+
+commit e75d84c655b8df7417328612b7c092bb3a19a339
+Author: Ray Villalobos <ray@planetoftheweb.com>
+Date:   Fri Dec 12 17:14:12 2014 -0800
+
+    start code
+commit e806da84a63c19518e1d399d2400a1d6e4737964
+Author: Ray Villalobos <ray@planetoftheweb.com>
+Date:   Mon Dec 15 15:19:49 2014 -0800
+
+    01_04 Using Rows & Columns
+
+commit f3cf9e36406718a45113439f9794447295454e51
+Author: Ray Villalobos <ray@planetoftheweb.com>
+Date:   Mon Dec 15 14:09:43 2014 -0800
+
+    01_03
+
+commit e7c305f4f9c14072ce0bd512853f3d6c51d2380e
+Author: Ray Villalobos <ray@planetoftheweb.com>
+Date:   Fri Dec 12 17:41:03 2014 -0800
+
+    start without any bootstrap
+
+commit e75d84c655b8df7417328612b7c092bb3a19a339
+Author: Ray Villalobos <ray@planetoftheweb.com>
+Date:   Fri Dec 12 17:14:12 2014 -0800
+
+    start code
+:Stopped
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (00_start)
+$ ls
+builds/  gulpfile.js  license.txt  package.json  README.md
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (00_start)
+$ rm -dfr .git
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (master)
+$ git log
+commit 12fd52148797c091812a3aa13e5681ac90d10ae5
+Author: Rachel Chiang <rchiang@cpp.edu>
+Date:   Sun Apr 2 14:30:24 2017 -0700
+
+    revision four (lynda tutorial example)
+
+commit 74e37af9bfe1f2c6f05bc874f0c24c369d6aa120
+Author: Rachel Chiang <rchiang@cpp.edu>
+Date:   Sun Apr 2 14:17:32 2017 -0700
+
+    revision three (lynda tutorial example)
+
+commit 24c545c3e3fe9434b151a9a18225d5dc6a715b77
+Author: Rachel Chiang <rchiang@cpp.edu>
+Date:   Sun Apr 2 14:16:50 2017 -0700
+
+    revision two (lynda tutorial example)
+
+commit 2aa5eabd90d6ec3dfd9ed41a144ab9ef37f8f975
+Author: Rachel Chiang <rchiang@cpp.edu>
+Date:   Sun Apr 2 14:12:11 2017 -0700
+
+    revision one (lynda tutorial example)
+commit 12fd52148797c091812a3aa13e5681ac90d10ae5
+Author: Rachel Chiang <rchiang@cpp.edu>
+Date:   Sun Apr 2 14:30:24 2017 -0700
+
+    revision four (lynda tutorial example)
+
+commit 74e37af9bfe1f2c6f05bc874f0c24c369d6aa120
+Author: Rachel Chiang <rchiang@cpp.edu>
+Date:   Sun Apr 2 14:17:32 2017 -0700
+
+    revision three (lynda tutorial example)
+
+commit 24c545c3e3fe9434b151a9a18225d5dc6a715b77
+Author: Rachel Chiang <rchiang@cpp.edu>
+Date:   Sun Apr 2 14:16:50 2017 -0700
+
+    revision two (lynda tutorial example)
+
+commit 2aa5eabd90d6ec3dfd9ed41a144ab9ef37f8f975
+Author: Rachel Chiang <rchiang@cpp.edu>
+Date:   Sun Apr 2 14:12:11 2017 -0700
+
+    revision one (lynda tutorial example)
+:Stopped
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (master)
+s
+bash: s: command not found
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (master)
+$ ls
+builds/  gulpfile.js  license.txt  package.json  README.md
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap (master)
+$ ls
+ls: cannot open directory '.': No such file or directory
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project/responsivebootstrap
+$ cd ~/Documents/School/2016-2017/Q3Spring17/CS380/project
+
+Rachel@DESKTOP-H1EI266 MINGW64 ~/Documents/School/2016-2017/Q3Spring17/CS380/project (master)
+$ ls
+about.html  index.html
