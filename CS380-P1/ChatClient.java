@@ -93,7 +93,7 @@ public class ChatClient
       {
          Socket socket = new Socket("codebank.xyz", 38001);
 
-        	OutputStream os = socket.getOutputStream();
+         OutputStream os = socket.getOutputStream();
          PrintStream out = new PrintStream(os, true, "UTF-8");
          Scanner sc = new Scanner(System.in);
          // User must send a line that will be used as the username
