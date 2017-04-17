@@ -10,7 +10,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
-//--------//--------//--------//--------//--------//--------//--------//--------
+
 /**
  * This class simply connects to codebank.xyz through port number 38102. The
  * server sends 200 Bytes, which are supposed to each by "half bytes" and thus
@@ -67,13 +67,14 @@ public class Ex2Client
          Checksum crc32 = new CRC32();
          crc32.update(received, 0, received.length);
          long errorCode = crc32.getValue();
-         System.out.println("\nGenerated CRC32: " + String.format("%08X", errorCode));
+         System.out.println("\nGenerated CRC32: "
+                           + String.format("%08X", errorCode));
          
          // Send CRC code as a sequence of 4B back to the server
          for (int i = 3; i >= 0; --i)
          {
-            // Can simply send the whole code just shifted, since the write(byte) function
-            // actually ignores the 24 high-order bits, thankfully
+            // Can simply send the whole code just shifted, since the function
+            // write(byte) actually ignores the 24 high-order bits, thankfully
             os.write((byte) (errorCode >>> 8 * i));
          }
          
