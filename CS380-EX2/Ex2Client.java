@@ -77,7 +77,6 @@ public class Ex2Client
             os.write((byte) (errorCode >>> 8 * i));
          }
          
-         
          // Server responds
          if (is.read() == 1)
          {
