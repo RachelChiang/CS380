@@ -9,6 +9,15 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+/**
+ * This program connects to a server codebank.xyz on port 38103. The first Byte
+ * that it reads corresponds to the number of Bytes that is to be saved into an
+ * array. After reading the whole array, we calculate the checksum of the array
+ * of Bytes, using the method {@link #checksum(byte[])}. Once it has been
+ * calculated, the client will send the checksum as a sequence of two Bytes back
+ * to the server. If the server responds 1, then the checksum was calculated
+ * correctly; otherwise, it will respond with a 0.
+ */
 public class Ex3Client
 {
    public static void main(String[] args)
@@ -20,33 +29,40 @@ public class Ex3Client
          // Setting up streams
          OutputStream os = socket.getOutputStream();
          InputStream is = socket.getInputStream();
-
+         
          System.out.println("Connected to server.");
          
-         // Receive Byte corresponding to the number of Bytes to receive for the message
+         // Receive Byte corresponding to the number of Bytes to receive for
+         // the message
          int numToRec = is.read();
          System.out.printf("Reading %d Bytes.\n", numToRec);
-         byte[] received = new byte[numToRec];
          
          // Read in the Bytes and store them in an array
+         byte[] received = new byte[numToRec];
          for (int i = 0; i < numToRec; ++i)
          {
             received[i] = (byte) is.read();
          }
          
-         // TEST-------------------------------------
-         //byte[] received = {(byte) 240, (byte) 143, (byte) 120, (byte) 7, (byte) 35, (byte) 108};
-         // TEST 2-----------------------------------
-        /* byte[] received = {(byte) 90, (byte) 220, (byte) 2, (byte) 180, (byte) 211, (byte) 73, (byte) 41, (byte) 105, (byte) 9, (byte) 118,
-               (byte) 183, (byte) 51, (byte) 146, (byte) 77, (byte) 134, (byte) 25, (byte) 30, (byte) 175, (byte) 79, (byte) 184,
-               (byte) 239, (byte) 68, (byte) 130, (byte) 39, (byte) 66, (byte) 119, (byte) 227, (byte) 211, (byte) 79, (byte) 245,
-               (byte) 156, (byte) 168, (byte) 121, (byte) 93, (byte) 135, (byte) 166, (byte) 66, (byte) 40, (byte) 77};*/
+         /* TEST 1-----------------------------------
+         byte[] received = {(byte) 240, (byte) 143, (byte) 120, (byte) 7, (byte) 35, (byte) 108};
+         */
+         /* TEST 2-----------------------------------
+         byte[] received = {(byte) 90, (byte) 220, (byte) 2, (byte) 180,
+               (byte) 211, (byte) 73, (byte) 41, (byte) 105, (byte) 9,
+               (byte) 118, (byte) 183, (byte) 51, (byte) 146, (byte) 77,
+               (byte) 134, (byte) 25, (byte) 30, (byte) 175, (byte) 79,
+               (byte) 184, (byte) 239, (byte) 68, (byte) 130, (byte) 39,
+               (byte) 66, (byte) 119, (byte) 227, (byte) 211, (byte) 79,
+               (byte) 245, (byte) 156, (byte) 168, (byte) 121, (byte) 93,
+               (byte) 135, (byte) 166, (byte) 66, (byte) 40, (byte) 77};
+               */
          
-         // Print out received Bytes
+         // Print out the Bytes received
          System.out.printf("Data received: ");
          for (int i = 0; i < received.length; ++i)
          {
-            if ((i)%5 == 0)
+            if ((i)%10 == 0)
             {
                System.out.print("\n  ");
             }
@@ -58,20 +74,20 @@ public class Ex3Client
          short checksum = checksum(received);
          System.out.printf("Checksum calculated: 0x%s\n", String.format("%04X", checksum));
          // Send the server the checksum represented as two Bytes
-         System.out.print(String.format("%04X", checksum >>> 8) + " ");
-         System.out.print(String.format("%04X", checksum) + "\n");
-         os.write((byte) (checksum >>> 8));
-         os.write((byte) checksum);
+         for (int i = 1; i >= 0; --i)
+         {
+            os.write((byte) (checksum >>> (8 * i)));
+         }
          
          // Server responds
          if (is.read() == 1)
          {
-            // If server responds with 1, the CRC32 code was correct
+            // If server responds with 1, the checksum was correct
             System.out.println("Response good.");
          }
          else
          {
-            // If server responds with 0, the CRC32 code was incorrect
+            // If server responds with 0, the checksum was incorrect
             System.out.println("Response bad.");
          }
          socket.close();
@@ -87,59 +103,60 @@ public class Ex3Client
       }
    }
    
+   /**
+    * This method implements the Internet checksum algorithm given in the EX3
+    * project specifications. The algorithm traverses the array b passed in as
+    * the argument two Bytes at a time, combining these two Bytes into a 16-bit
+    * value, which is added to the sum. Every time the new sum is calculated,
+    * it must pass an overflow check. If an overflow occurred, then we logic-and
+    * the sum with 0xFFFF (thereby dropping the overflow but keeping the lower-
+    * order 16 bits) and then add 1, functioning as a "wrap-around". Finally,
+    * when the sum has been calculated, the complement of the sum is calculated
+    * and only the rightmost 16 bits are returned.
+    * @param b - the Byte array that was received from the server
+    * @return - the checksum corresponding to the Byte array b
+    */
    public static short checksum(byte[] b)
    {
-      // This method will implement the Internet checksum algorithm that is also used
-      // in project 3 for IPv4 packets
-      /*
-       * The algorithm maintains a 32 bit number as the sum and goes through the byte
-       * array two bytes at a time, forms a 16-bit number out of each pair of bytes
-       * and adds to the sum. After each time it adds, it checks for overflow.
-       * If overflow occurs, it is cleared and added back in to the sum
-       * (acting like a wrap-around).
-       * Finally, when the sum is calculated we perform ones’ complement and return
-       * the rightmost 16 bits of the sum.
-       */
-      /*
-       * Data received: F0 8F 78 07 23 6C Checksum calculated: 0x73FC
-       */
       long sum = 0;
-      // 28D
-      for (int i = 0; i < b.length;)
+      int i = 0;
+      while (i < b.length)
       {
-         System.out.println(i + ":");
-         //sum += b[i];
+         // Find the left-side Byte (upper 8 bits)
          long left = (byteToUnsignedLong(b[i++])) << 8;
+         // Find the right-side Byte (lower 8 bits), but only if it exists
          long right = 0;
          if (i < b.length)
          {
+            // since the server can pass in an odd number of Bytes, we must
+            // make sure to only calculate a right-side from the array if
+            // it exists.
             right = byteToUnsignedLong(b[i++]);
          }
-         //long nextValue = (byteToUnsignedLong(b[i++]) << 8) + (byteToUnsignedLong(b[i++]));
+         // Combine the two.
          long nextValue = left + right;
+
+         // Add this new value to the sum
          sum += nextValue;
-         //sum += byteToUnsignedLong(b[i]);
-         System.out.println("  Intermediate sum: " + sum);
+         
+         // Check for overflow
          if ((sum & 0xFFFF0000) != 0)
          {
             // Carry occurred, must wrap around
             sum &= 0xFFFF;
             ++sum;
-            System.out.println("  Carry occurred.");
          }
-         System.out.println("  Sum: " + sum);
       }
-      System.out.println("Final sum: " + sum + " = " + String.format("%04X", sum));
-      System.out.println("D&C: " + String.format("%04X", ~(sum & 0xFFFF)));
-      /*Byte left = (byte) (sum >>> 8);
-      Byte right = (byte) sum;
-      long result = (byteToUnsignedLong(left) << 8) + (byteToUnsignedLong(right));
-      System.out.println("Unsigned long: " + result + " = " + String.format("%04X", result));
-      System.out.println("Left: " + String.format("%02X", left));
-      System.out.println("Right: " + String.format("%02X", right));*/
+      // return the checksum
       return (short) (~(sum & 0xFFFF));
    }
    
+   /**
+    * This method simply finds the unsigned long value corresponding to the
+    * passed in Byte.
+    * @param b - a Byte
+    * @return - the equivalent unsigned long to b
+    */
    private static long byteToUnsignedLong(byte b)
    {
       return (b & 0xFF);
