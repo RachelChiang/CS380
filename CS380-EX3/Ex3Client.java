@@ -44,20 +44,6 @@ public class Ex3Client
             received[i] = (byte) is.read();
          }
          
-         /* TEST 1-----------------------------------
-         byte[] received = {(byte) 240, (byte) 143, (byte) 120, (byte) 7, (byte) 35, (byte) 108};
-         */
-         /* TEST 2-----------------------------------
-         byte[] received = {(byte) 90, (byte) 220, (byte) 2, (byte) 180,
-               (byte) 211, (byte) 73, (byte) 41, (byte) 105, (byte) 9,
-               (byte) 118, (byte) 183, (byte) 51, (byte) 146, (byte) 77,
-               (byte) 134, (byte) 25, (byte) 30, (byte) 175, (byte) 79,
-               (byte) 184, (byte) 239, (byte) 68, (byte) 130, (byte) 39,
-               (byte) 66, (byte) 119, (byte) 227, (byte) 211, (byte) 79,
-               (byte) 245, (byte) 156, (byte) 168, (byte) 121, (byte) 93,
-               (byte) 135, (byte) 166, (byte) 66, (byte) 40, (byte) 77};
-               */
-         
          // Print out the Bytes received
          System.out.printf("Data received: ");
          for (int i = 0; i < received.length; ++i)
