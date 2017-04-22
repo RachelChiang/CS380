@@ -58,7 +58,8 @@ public class Ex3Client
          
          // Find checksum of these Bytes
          short checksum = checksum(received);
-         System.out.printf("Checksum calculated: 0x%s\n", String.format("%04X", checksum));
+         System.out.printf("Checksum calculated: 0x%s\n", String.format("%04X",
+               checksum));
          // Send the server the checksum represented as two Bytes
          for (int i = 1; i >= 0; --i)
          {
