@@ -17,27 +17,45 @@ public class Ipv4Client
          // Setting up streams
          OutputStream os = socket.getOutputStream();
          InputStream is = socket.getInputStream();
-         
-         System.out.println("Connected to the server.");
-         
-         PacketGenerator packetGen = new PacketGenerator(2);
-         System.out.println("data length: 2");
-         packetGen.printBitPacket();
-         byte[] packet = packetGen.getPacket();
-         for (int i = 0; i < packet.length; ++i)
-         {
-            System.out.print(String.format("%02X ", packet[i]));
-            os.write(packet[i]);
-         }
-         System.out.println();
-         
          InputStreamReader isr = new InputStreamReader(is, "UTF-8");
          BufferedReader br = new BufferedReader(isr);
          String msg = "";
-         while (msg != null)
+         
+         System.out.println("Connected to the server.");
+         
+         boolean canContinue = true;
+         int dataLength = 2;
+         
+         while (canContinue)
          {
-            System.out.println(msg);
+            PacketGenerator packetGen = new PacketGenerator(dataLength);
+            System.out.printf("data length: %d\n", dataLength);
+            //packetGen.printBitPacket();
+            byte[] packet = packetGen.getPacket();
+            for (int i = 0; i < 20; ++i)
+            {
+               System.out.print(String.format("%02X ", packet[i]));
+            }
+            
+            for (int i = 0; i < packet.length; ++i)
+            {
+               os.write(packet[i]);
+            }
+            
             msg = br.readLine();
+            System.out.println("\n" + msg);
+            if (msg.equals("good"))
+            {
+               dataLength *= 2;
+               if (dataLength > 4096)
+               {
+                  canContinue = false;
+               }
+            }
+            else
+            {
+               canContinue = false;
+            }
          }
          
          socket.close();

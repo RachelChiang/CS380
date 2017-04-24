@@ -1,3 +1,4 @@
+import java.net.InetAddress;
 
 public class PacketGenerator implements PacketConstants
 {
@@ -200,14 +201,10 @@ public class PacketGenerator implements PacketConstants
       // TODO: Fill it in properly.
       // SourceAddr (with IP address of your choice) - (32b)
       // DestinationAddr (with IP address of the server) - (32b)
-      /*for (int i = 31; i >= 0; --i)
-      {
-         bitPacket[SRCADDR_START + i] = 2;
-         bitPacket[DESTADDR_START + i] = 2;
-      }*/
       for (int i = 0; i < 32; ++i)
       {
-         bitPacket[SRCADDR_END - i] = 0;
+         bitPacket[SRCADDR_END - i] = 0x1 & (0xC0A801E9 >>> i); // but not this one
+         //bitPacket[SRCADDR_END - i] = 0x1 & (0xAAAAAAAA >>> i); // why does this work aaaa
          //bitPacket[DESTADDR_END - i] = 0;
          bitPacket[DESTADDR_END - i] = 0x1 & (0x3425589A >>> i);
       }
@@ -216,7 +213,7 @@ public class PacketGenerator implements PacketConstants
    private void fillData()
    {
       // Data (using zeros or rand data)
-      // TODO: Maybe fill it in with random data if you have time/care enough to
+      // TODO: Maybe fill it in with random data if you want
       for (int i = DATA_START; i < bitPacket.length; ++i)
       {
          bitPacket[i] = 0;
@@ -302,7 +299,8 @@ public class PacketGenerator implements PacketConstants
          }
       }
       
-      System.out.println("checksum: " + (~(sum & 0xFFFF)) + " = " + String.format("%02X", ~(sum & 0xFFFF)));
+      short result = (short) (~(sum & 0xFFFF));
+      System.out.println("checksum: " + result + " = " + String.format("%02X", result));
       
       // return the checksum
       return (short) (~(sum & 0xFFFF));
