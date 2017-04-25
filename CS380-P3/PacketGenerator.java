@@ -118,7 +118,7 @@ public class PacketGenerator implements PacketConstants
       // Flags (assuming no fragmentation) - (3b) b0b1b2
       // b0 must be 0; b1 = 1 (don't fragment), b1 = 0 (may fragment);
       //  b2 = 0 (last fragment), b2 = 1 (more fragments)
-      // TODO: Double-check this is right
+      // TODO: Double-check this is right. Probably right.
       bitPacket[FLAGS_START] = 0;
       bitPacket[FLAGS_START + 1] = 1;
       bitPacket[FLAGS_START + 2] = 0;
@@ -166,7 +166,7 @@ public class PacketGenerator implements PacketConstants
       }*/
       
       /*
-      // if checksum is on prior header
+      // if checksum is on header before addresses
       byte[] header = new byte[10];
       int i = 0;
       int j = 0;
@@ -189,8 +189,7 @@ public class PacketGenerator implements PacketConstants
       //*/
       
       short checksum = checksum(header);
-      
-      for (int idx = 0; idx < 15; ++idx)
+      for (int idx = 0; idx < 16; ++idx)
       {
          bitPacket[CHECKSUM_END - idx] = 0x1 & (checksum >>> idx);
       }
@@ -203,9 +202,7 @@ public class PacketGenerator implements PacketConstants
       // DestinationAddr (with IP address of the server) - (32b)
       for (int i = 0; i < 32; ++i)
       {
-         bitPacket[SRCADDR_END - i] = 0x1 & (0xC0A801E9 >>> i); // but not this one
-         //bitPacket[SRCADDR_END - i] = 0x1 & (0xAAAAAAAA >>> i); // why does this work aaaa
-         //bitPacket[DESTADDR_END - i] = 0;
+         bitPacket[SRCADDR_END - i] = 0x1 & (0xC0A801E9 >>> i);
          bitPacket[DESTADDR_END - i] = 0x1 & (0x3425589A >>> i);
       }
    }
@@ -286,7 +283,7 @@ public class PacketGenerator implements PacketConstants
          }
          // Combine the two.
          long nextValue = left + right;
-
+        // System.out.println("next value: " + nextValue + " = " + String.format("%02X", nextValue));
          // Add this new value to the sum
          sum += nextValue;
          
@@ -298,12 +295,14 @@ public class PacketGenerator implements PacketConstants
             ++sum;
          }
       }
+    //  System.out.println("sum: " + sum + " = " + String.format("%02X", sum));
       
       short result = (short) (~(sum & 0xFFFF));
-      System.out.println("checksum: " + result + " = " + String.format("%02X", result));
+   //   System.out.println("checksum: " + result + " = " + String.format("%02X",
+   //         result));
       
       // return the checksum
-      return (short) (~(sum & 0xFFFF));
+      return result;
    }
    // TODO: fix comments here
    /**
