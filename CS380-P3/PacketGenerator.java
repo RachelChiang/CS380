@@ -1,5 +1,3 @@
-import java.net.InetAddress;
-
 public class PacketGenerator implements PacketConstants
 {
    private int[] bitPacket;
@@ -7,7 +5,7 @@ public class PacketGenerator implements PacketConstants
    
    public PacketGenerator(int dataLength)
    {
-      // dataLength is in bytes, so conver to bits.
+      // dataLength is in bytes, so convert to bits.
       // There are 5 rows of 32 bits, ignoring the last row
       // The packet will be an array of 1's and 0's
       // that will eventually be translated into Bytes
@@ -160,23 +158,7 @@ public class PacketGenerator implements PacketConstants
    {
       // Checksum - (16b) Checksum for the header only.
       // TODO: Fill it in properly.
-      /*for (int i = 15; i >= 0; --i)
-      {
-         bitPacket[CHECKSUM_START + i] = 2;
-      }*/
       
-      /*
-      // if checksum is on header before addresses
-      byte[] header = new byte[10];
-      int i = 0;
-      int j = 0;
-      while (i < CHECKSUM_START)
-      {
-         header[j++] = accumulateBits(i);
-         i += 8;
-      }
-      */
-      ///*
       // if checksum is on the whole header
       byte[] header = new byte[20];
       int i = 0;
@@ -186,7 +168,6 @@ public class PacketGenerator implements PacketConstants
          header[j++] = accumulateBits(i);
          i += 8;
       }
-      //*/
       
       short checksum = checksum(header);
       for (int idx = 0; idx < 16; ++idx)

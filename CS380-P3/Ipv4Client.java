@@ -26,22 +26,25 @@ public class Ipv4Client
          boolean canContinue = true;
          int dataLength = 2;
          
+         // Send a total of 12 packets, starting at 2B. Double in size each time
          while (canContinue)
          {
             PacketGenerator packetGen = new PacketGenerator(dataLength);
+            // Identify each packet being sent by the "data length: n"
             System.out.printf("data length: %d\n", dataLength);
             //packetGen.printBitPacket();
             byte[] packet = packetGen.getPacket();
-            for (int i = 0; i < 20; ++i)
+        /*    for (int i = 0; i < 20; ++i)
             {
                System.out.print(String.format("%02X ", packet[i]));
-            }
+            }*/
             
             for (int i = 0; i < packet.length; ++i)
             {
                os.write(packet[i]);
             }
             
+            // finally, print out the server's response
             msg = br.readLine();
             System.out.println("\n" + msg);
             if (msg.equals("good"))
@@ -69,11 +72,5 @@ public class Ipv4Client
       {
          System.out.println("Disconnected from server.");
       }
-      
-      // Send a total of 12 packets, starting at 2B and doubling in size each
-      // time
-      
-      // Identify each packet being sent by the "data length: n"
-      // and print out the server's response
    }
 }
