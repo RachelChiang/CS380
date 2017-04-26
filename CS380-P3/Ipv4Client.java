@@ -1,3 +1,8 @@
+/*
+ * Rachel Chiang
+ * CS 380.01 Computer Networks
+ * Project 3: IPv4
+ */
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -6,6 +11,14 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+/**
+ * This program generates a packet with an IPv4 header and sends it to the server
+ * (codebank.xyz through port 38003). The length of the data begins as 2B and
+ * doubles every time (for a total of 12 packets with the maximum size as 4096).
+ * After writing to the server, the server will respond "good" if the packet was
+ * constructed according to the project specifications, or it will respond with
+ * whatever it believes is the problem.
+ */
 public class Ipv4Client
 {
    public static void main(String[] args)
