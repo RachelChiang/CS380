@@ -1,17 +1,5 @@
 public interface PacketConstants
 {
-   /*public static final int VERSION_START = 0;
-   public static final int IHL_START = 4;
-   public static final int TOS_START = 8;
-   public static final int LENGTH_START = 16;
-   public static final int IDEN_START = 32;
-   public static final int FLAGS_START = 48;
-   public static final int OFFSET_START = 51;
-   public static final int TTL_START = 64;
-   public static final int PROTOCOL_START = 72;
-   public static final int CHECKSUM_START = 80;
-   public static final int SRCADDR_START = 96;
-   public static final int DESTADDR_START = 128;*/
    public static final int DATA_START = 160;
    
    public static final int VERSION_END = 3;

@@ -10,13 +10,8 @@ public class PacketGenerator implements PacketConstants
       // The packet will be an array of 1's and 0's
       // that will eventually be translated into Bytes
       this.dataLength = dataLength;
-      bitPacket = new int[(this.dataLength * 8) + (32 * 5)];
-      for (int i = 0; i < bitPacket.length; ++i)
-      {
-         bitPacket[i] = 0;
-      }
-     // populateBitPacket();
-      populateBitPacket2();
+      bitPacket = new int[(32 * 5)];
+      populateBitPacket();
    }
    
    public byte[] getPacket()
@@ -48,36 +43,23 @@ public class PacketGenerator implements PacketConstants
    
    private void populateBitPacket()
    {
-      fillVersion();
-      fillIHL();
-      fillLength();
-      fillFlags();
-      fillTTL();
-      fillProtocol();
-      fillAddresses();
-      fillData();
-      //fillLeftovers();
-      fillChecksum();
-   }
-   
-   private void populateBitPacket2()
-   {
-      // Version: IPv4 --> value = 4
+      // Version [4b] - indicates format of internet header; IPv4 --> value = 4
       fill(VERSION_END, VERSION_SIZE, 4);
-      // IHL: Length in 32b words --> value = 5
+      // IHL [4b]: Header length in 32b words --> value = 5
       fill(IHL_END, IHL_SIZE, 5);
-      // Length: datagram in octets --> value = dataLength + IH[bits]/octet = dataLength + 160/8
+      // Length [16b]: datagram in octets --> value = dataLength + IH[bits]/octet = dataLength + 160/8
       fill(LENGTH_END, LENGTH_SIZE, (dataLength + (160 / 8)));
-      // Flags: no fragmentation --> value = 010[bin] = 2
+      // Flags [3b]: no fragmentation --> value = 010[bin] = 2
+      // b0 must be 0; b1 = 1 (don't fragment), b1 = 0 (may fragment);
+      // b2 = 0 (last fragment), b2 = 1 (more fragments)
       fill(FLAGS_END, FLAGS_SIZE, 2);
-      // TTL: time to live --> value = 50
+      // TTL [8b]: max time datagram can exist in internet system --> value = 50
       fill(TTL_END, TTL_SIZE, 50);
-      // Protocol: assume TCP --> value = TCP = 6
+      // Protocol [8b]: next level protocol used in data portion, assume TCP --> value = TCP = 6
       fill(PROTOCOL_END, PROTOCOL_SIZE, 6);
-      // Addresses: Src = choice addr, Dest = server IP = 0x3425589A
+      // Addresses [32b]: Src = choice addr, Dest = server IP = 0x3425589A
       fill(SRCADDR_END, ADDR_SIZE, 0xC0A801E9);
       fill(DESTADDR_END, ADDR_SIZE, 0x3425589A);
-      fillData();
       
       // Checksum
       fillChecksum();
@@ -88,75 +70,6 @@ public class PacketGenerator implements PacketConstants
       for (int i = 0; i < fieldSize; ++i)
       {
          bitPacket[endIndex - i] = 0x1 & (value >>> i);
-      }
-   }
-   
-   private void fillVersion()
-   {
-      // Version - (4b), indicates format of internet header
-      // Version is 4 (0100)
-      for (int i = 0; i < 4; ++i)
-      {
-         bitPacket[VERSION_END - i] = 0x1 & (4 >>> i);
-      }
-   }
-   
-   private void fillIHL()
-   {
-      // HLen (IHL) - (4b), length of the internet header in 32b words;
-      // points to beginning of data. (Note min value = 5)
-      
-      for (int i = 0; i < 4; ++i)
-      {
-         bitPacket[IHL_END - i] = 0x1 & (5 >>> i);
-      }
-   }
-   
-   private void fillLength()
-   {
-      // Length - (16b), length of datagram, measured in octets, including
-      // internet header and data
-      // 160 bits in the IHL divided into octets (by 8), plus the dataLength
-      // which is already measured in octets
-      for (int i = 0; i < 16; ++i)
-      {
-         bitPacket[LENGTH_END - i] = 0x1 & ((dataLength + (160 / 8)) >>> i);
-         //bitPacket[LENGTH_END - i] = 0x1 & ((dataLength) >>> i);
-      }
-   }
-   
-   private void fillFlags()
-   {
-      // Flags (assuming no fragmentation) - (3b) b0b1b2
-      // b0 must be 0; b1 = 1 (don't fragment), b1 = 0 (may fragment);
-      //  b2 = 0 (last fragment), b2 = 1 (more fragments)
-      for (int i = 0; i < 3; ++i)
-      {
-         bitPacket[FLAGS_END - i] = 0x1 & (2 >>> i);
-      }
-   }
-   
-   private void fillTTL()
-   {
-      // TTL (assuming every packet has TTL=50) - (8b) Maximum time the datagram
-      // is allowed to remain in the internet system. If this field = 0, datagram
-      // must be destroyed. Modified in internet header processing. Time is
-      // measured in units of seconds. TTL is an upper bound on the time a
-      // datagram may exist
-      
-      for (int i = 0; i < 8; ++i)
-      {
-         bitPacket[TTL_END - i] = 0x1 & (50 >>> i);
-      }
-   }
-   
-   private void fillProtocol()
-   {
-      // Protocol (assuming TCP) - (8b) This field indicates the next level
-      // protocol used in the data portion of the internet diagram. TCP=6
-      for (int i = 0; i < 8; ++i)
-      {
-         bitPacket[PROTOCOL_END - i] = 0x1 & (6 >>> i);
       }
    }
    
@@ -181,61 +94,6 @@ public class PacketGenerator implements PacketConstants
       }
    }
    
-   private void fillAddresses()
-   {
-      // SourceAddr (with IP address of your choice) - (32b)
-      // DestinationAddr (with IP address of the server) - (32b)
-      for (int i = 0; i < 32; ++i)
-      {
-         bitPacket[SRCADDR_END - i] = 0x1 & (0xC0A801E9 >>> i);
-         bitPacket[DESTADDR_END - i] = 0x1 & (0x3425589A >>> i);
-      }
-   }
-   
-   private void fillData()
-   {
-      // Data (using zeros or rand data)
-      // TODO: Maybe fill it in with random data if you want
-      for (int i = DATA_START; i < bitPacket.length; ++i)
-      {
-         bitPacket[i] = 0;
-      }
-   }
-   /*
-   private void fillLeftovers()
-   {
-      // Do Not Implement: TOS (8b), Identification (16b), Offset (13b)
-      // Fill with 0's
-      for (int i = TOS_START; i < TOS_START + 8; ++i)
-      {
-         bitPacket[i] = 0;
-      }
-      
-      for (int i = IDEN_START; i < IDEN_START + 16; ++i)
-      {
-         bitPacket[i] = 0;
-      }
-      
-      for (int i = OFFSET_START; i < OFFSET_START + 13; ++i)
-      {
-         bitPacket[i] = 0;
-      }
-   }
-   */
-   public void printBitPacket()
-   {
-      for (int i = 0; i < bitPacket.length; ++i)
-      {
-         if ((i%32) == 0)
-         {
-            System.out.println();
-         }
-         System.out.print(bitPacket[i] + " ");
-      }
-      System.out.println();
-   }
-   
-   // TODO: Fix the comments
    /**
     * This method implements the Internet checksum algorithm given in the EX3
     * project specifications. The algorithm traverses the array b passed in as
@@ -268,7 +126,6 @@ public class PacketGenerator implements PacketConstants
          }
          // Combine the two.
          long nextValue = left + right;
-        // System.out.println("next value: " + nextValue + " = " + String.format("%02X", nextValue));
          // Add this new value to the sum
          sum += nextValue;
          
@@ -280,15 +137,9 @@ public class PacketGenerator implements PacketConstants
             ++sum;
          }
       }
-    //  System.out.println("sum: " + sum + " = " + String.format("%02X", sum));
-      
-   //   System.out.println("checksum: " + result + " = " + String.format("%02X",
-   //         result));
-      
-      // return the checksum
       return (short) (~(sum & 0xFFFF));
    }
-   // TODO: fix comments here too
+   
    /**
     * This method simply finds the unsigned long value corresponding to the
     * passed in Byte.

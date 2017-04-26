@@ -32,12 +32,7 @@ public class Ipv4Client
             PacketGenerator packetGen = new PacketGenerator(dataLength);
             // Identify each packet being sent by the "data length: n"
             System.out.printf("data length: %d\n", dataLength);
-            //packetGen.printBitPacket();
             byte[] packet = packetGen.getPacket();
-            /*for (int i = 0; i < 20; ++i)
-            {
-               System.out.print(String.format("%02X ", packet[i]));
-            }*/
             
             for (int i = 0; i < packet.length; ++i)
             {
