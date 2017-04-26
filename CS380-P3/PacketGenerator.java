@@ -15,7 +15,8 @@ public class PacketGenerator implements PacketConstants
       {
          bitPacket[i] = 0;
       }
-      populateBitPacket();
+     // populateBitPacket();
+      populateBitPacket2();
    }
    
    public byte[] getPacket()
@@ -59,18 +60,41 @@ public class PacketGenerator implements PacketConstants
       fillChecksum();
    }
    
+   private void populateBitPacket2()
+   {
+      // Version: IPv4 --> value = 4
+      fill(VERSION_END, VERSION_SIZE, 4);
+      // IHL: Length in 32b words --> value = 5
+      fill(IHL_END, IHL_SIZE, 5);
+      // Length: datagram in octets --> value = dataLength + IH[bits]/octet = dataLength + 160/8
+      fill(LENGTH_END, LENGTH_SIZE, (dataLength + (160 / 8)));
+      // Flags: no fragmentation --> value = 010[bin] = 2
+      fill(FLAGS_END, FLAGS_SIZE, 2);
+      // TTL: time to live --> value = 50
+      fill(TTL_END, TTL_SIZE, 50);
+      // Protocol: assume TCP --> value = TCP = 6
+      fill(PROTOCOL_END, PROTOCOL_SIZE, 6);
+      // Addresses: Src = choice addr, Dest = server IP = 0x3425589A
+      fill(SRCADDR_END, ADDR_SIZE, 0xC0A801E9);
+      fill(DESTADDR_END, ADDR_SIZE, 0x3425589A);
+      fillData();
+      
+      // Checksum
+      fillChecksum();
+   }
+   
+   private void fill(int endIndex, int fieldSize, int value)
+   {
+      for (int i = 0; i < fieldSize; ++i)
+      {
+         bitPacket[endIndex - i] = 0x1 & (value >>> i);
+      }
+   }
+   
    private void fillVersion()
    {
       // Version - (4b), indicates format of internet header
       // Version is 4 (0100)
-      /*for (int i = 3; i >= 0; --i)
-      {
-         bitPacket[VERSION_START + i] = 0x1 & (4 >>> i);
-      }*/
-      /*bitPacket[3] = 0; // 010X
-      bitPacket[2] = 0; // 01X0
-      bitPacket[1] = 1; // 0X00
-      bitPacket[0] = 0; // X100*/
       for (int i = 0; i < 4; ++i)
       {
          bitPacket[VERSION_END - i] = 0x1 & (4 >>> i);
@@ -81,11 +105,6 @@ public class PacketGenerator implements PacketConstants
    {
       // HLen (IHL) - (4b), length of the internet header in 32b words;
       // points to beginning of data. (Note min value = 5)
-      // TODO: Double-check this is right
-      /*for (int i = 3; i >= 0; --i)
-      {
-         bitPacket[IHL_START + i] = 0x1 & (5 >>> i);
-      }*/
       
       for (int i = 0; i < 4; ++i)
       {
@@ -97,11 +116,6 @@ public class PacketGenerator implements PacketConstants
    {
       // Length - (16b), length of datagram, measured in octets, including
       // internet header and data
-      // TODO: Double-check this is right
-      /*for (int i = 15; i >= 0; --i)
-      {
-         bitPacket[LENGTH_START + i] = 0x1 & (dataLength >>> i);
-      }*/
       // 160 bits in the IHL divided into octets (by 8), plus the dataLength
       // which is already measured in octets
       for (int i = 0; i < 16; ++i)
@@ -116,10 +130,10 @@ public class PacketGenerator implements PacketConstants
       // Flags (assuming no fragmentation) - (3b) b0b1b2
       // b0 must be 0; b1 = 1 (don't fragment), b1 = 0 (may fragment);
       //  b2 = 0 (last fragment), b2 = 1 (more fragments)
-      // TODO: Double-check this is right. Probably right.
-      bitPacket[FLAGS_START] = 0;
-      bitPacket[FLAGS_START + 1] = 1;
-      bitPacket[FLAGS_START + 2] = 0;
+      for (int i = 0; i < 3; ++i)
+      {
+         bitPacket[FLAGS_END - i] = 0x1 & (2 >>> i);
+      }
    }
    
    private void fillTTL()
@@ -129,10 +143,6 @@ public class PacketGenerator implements PacketConstants
       // must be destroyed. Modified in internet header processing. Time is
       // measured in units of seconds. TTL is an upper bound on the time a
       // datagram may exist
-      /*for (int i = 7; i >= 0; --i)
-      {
-         bitPacket[TTL_START + i] = 0x1 & (50 >>> i);
-      }*/
       
       for (int i = 0; i < 8; ++i)
       {
@@ -144,10 +154,6 @@ public class PacketGenerator implements PacketConstants
    {
       // Protocol (assuming TCP) - (8b) This field indicates the next level
       // protocol used in the data portion of the internet diagram. TCP=6
-      /*for (int i = 7; i >= 0; --i)
-      {
-         bitPacket[PROTOCOL_START + i] = 0x1 & (6 >>> i);
-      }*/
       for (int i = 0; i < 8; ++i)
       {
          bitPacket[PROTOCOL_END - i] = 0x1 & (6 >>> i);
@@ -157,7 +163,6 @@ public class PacketGenerator implements PacketConstants
    private void fillChecksum()
    {
       // Checksum - (16b) Checksum for the header only.
-      // TODO: Fill it in properly.
       
       // if checksum is on the whole header
       byte[] header = new byte[20];
@@ -178,7 +183,6 @@ public class PacketGenerator implements PacketConstants
    
    private void fillAddresses()
    {
-      // TODO: Fill it in properly.
       // SourceAddr (with IP address of your choice) - (32b)
       // DestinationAddr (with IP address of the server) - (32b)
       for (int i = 0; i < 32; ++i)
@@ -197,7 +201,7 @@ public class PacketGenerator implements PacketConstants
          bitPacket[i] = 0;
       }
    }
-   
+   /*
    private void fillLeftovers()
    {
       // Do Not Implement: TOS (8b), Identification (16b), Offset (13b)
@@ -217,7 +221,7 @@ public class PacketGenerator implements PacketConstants
          bitPacket[i] = 0;
       }
    }
-   
+   */
    public void printBitPacket()
    {
       for (int i = 0; i < bitPacket.length; ++i)
@@ -278,14 +282,13 @@ public class PacketGenerator implements PacketConstants
       }
     //  System.out.println("sum: " + sum + " = " + String.format("%02X", sum));
       
-      short result = (short) (~(sum & 0xFFFF));
    //   System.out.println("checksum: " + result + " = " + String.format("%02X",
    //         result));
       
       // return the checksum
-      return result;
+      return (short) (~(sum & 0xFFFF));
    }
-   // TODO: fix comments here
+   // TODO: fix comments here too
    /**
     * This method simply finds the unsigned long value corresponding to the
     * passed in Byte.

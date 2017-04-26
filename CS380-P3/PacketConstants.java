@@ -1,6 +1,6 @@
 public interface PacketConstants
 {
-   public static final int VERSION_START = 0;
+   /*public static final int VERSION_START = 0;
    public static final int IHL_START = 4;
    public static final int TOS_START = 8;
    public static final int LENGTH_START = 16;
@@ -11,7 +11,7 @@ public interface PacketConstants
    public static final int PROTOCOL_START = 72;
    public static final int CHECKSUM_START = 80;
    public static final int SRCADDR_START = 96;
-   public static final int DESTADDR_START = 128;
+   public static final int DESTADDR_START = 128;*/
    public static final int DATA_START = 160;
    
    public static final int VERSION_END = 3;
@@ -26,6 +26,15 @@ public interface PacketConstants
    public static final int CHECKSUM_END = 95;
    public static final int SRCADDR_END = 127;
    public static final int DESTADDR_END = 159;
+   
+   public static final int VERSION_SIZE = 4;
+   public static final int IHL_SIZE = 4;
+   public static final int LENGTH_SIZE = 16;
+   public static final int FLAGS_SIZE = 3;
+   public static final int TTL_SIZE = 8;
+   public static final int PROTOCOL_SIZE = 8;
+   public static final int CHECKSUM_SIZE = 16;
+   public static final int ADDR_SIZE = 32;
 }
 /*
  * Internet Header Format

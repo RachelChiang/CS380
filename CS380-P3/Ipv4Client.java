@@ -34,7 +34,7 @@ public class Ipv4Client
             System.out.printf("data length: %d\n", dataLength);
             //packetGen.printBitPacket();
             byte[] packet = packetGen.getPacket();
-        /*    for (int i = 0; i < 20; ++i)
+            /*for (int i = 0; i < 20; ++i)
             {
                System.out.print(String.format("%02X ", packet[i]));
             }*/
@@ -46,7 +46,7 @@ public class Ipv4Client
             
             // finally, print out the server's response
             msg = br.readLine();
-            System.out.println("\n" + msg);
+            System.out.println(msg + "\n");
             if (msg.equals("good"))
             {
                dataLength *= 2;
