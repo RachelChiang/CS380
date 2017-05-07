@@ -1,21 +1,20 @@
-
 public interface IPv6Constants
 {
    // The ending index of the relevant fields in the header
-   public static final int VERSION_END = 3;
-   public static final int PLENGTH_END = 47;
-   public static final int NEXTHDR_END = 55;
-   public static final int HOPLIMIT_END = 63;
-   public static final int SRCADDR_END = 191;
-   public static final int DESTADDR_END = 319;
+   public static final int VERSION_END = 0;
+   public static final int PLENGTH_END = 11;
+   public static final int NEXTHDR_END = 13;
+   public static final int HOPLIMIT_END = 15;
+   public static final int SRCADDR_END = 47;
+   public static final int DESTADDR_END = 79;
    
-   // The size in bits of the relevant fields
-   public static final int VERSION_SIZE = 4;
-   public static final int PLENGTH_SIZE = 16;
-   public static final int NEXTHDR_SIZE = 8;
-   public static final int HOPLIMIT_SIZE = 8;
-   public static final int ADDR_SIZE = 128;
-   public static final int HEADER_SIZE = 320;
+   // The size in nibbles of the relevant fields
+   public static final int VERSION_SIZE = 1;
+   public static final int PLENGTH_SIZE = 4;
+   public static final int NEXTHDR_SIZE = 2;
+   public static final int HOPLIMIT_SIZE = 2;
+   public static final int ADDR_SIZE = 32;
+   public static final int HEADER_SIZE = 80;
 }
 
 /*
@@ -29,7 +28,7 @@ public interface IPv6Constants
  *       using the IP address of the server you are connected to
  * Don't Implement: Traffic Class [8b], Flow Label [20b]
  * 
- * IPv6 Header Format
+ * IPv6 Header Format [bits]
  *  0                   1                   2                   3
  *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1        
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -41,4 +40,22 @@ public interface IPv6Constants
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * |                   Destination Address [128b]                  |
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * 
+ * IPv6 Header Format [nibbles]
+ *  0 1 2 3 4 5 6 7
+ * +-+-+-+-+-+-+-+-+
+ * |V|TC |FlowLabel|
+ * +-+-+-+-+-+-+-+-+
+ * |PLength|NHd|HL |
+ * +-+-+-+-+-+-+-+-+
+ * |Src Addr [32n] |
+ * |               |
+ * |               |
+ * |               |
+ * +-+-+-+-+-+-+-+-+
+ * |DestAddr [32n] |
+ * |               |
+ * |               |
+ * |               |
+ * +-+-+-+-+-+-+-+-+
  */

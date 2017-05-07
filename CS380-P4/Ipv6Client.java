@@ -1,11 +1,9 @@
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URL;
-import java.net.URLStreamHandler;
 import java.net.UnknownHostException;
 
 public class Ipv6Client
@@ -30,7 +28,7 @@ public class Ipv6Client
          int srcIPInt = getIPInt(srcIP);
          int cbxyzIPInt = getIPInt(cbxyzIP);
          
-         System.out.println("Connected to the server " + address);
+         System.out.println("Connected to the server " + address + "\n");
          
          MagicNumberLookup magicNumCheck = new MagicNumberLookup();
          boolean canContinue = true;
@@ -38,8 +36,8 @@ public class Ipv6Client
          // Send a total of 12 packets, starting at 2B. Double in size each time
          while (canContinue && dataLength <= 4096)
          {
-            // TODO: Packet Generator
             IPv6PacketGenerator packetGen = new IPv6PacketGenerator(dataLength);
+            
             // Identify each packet being sent by the "data length: n"
             System.out.printf("data length: %d\n", dataLength);
             byte[] packet = packetGen.getPacket(srcIPInt, cbxyzIPInt);
@@ -57,25 +55,10 @@ public class Ipv6Client
                response = response << 8;
                response += is.read();
             }
-            
-            System.out.println("Response: " + String.format("%08X", response));
+            System.out.printf("Response: %s\n\n", String.format("%08X", response));
             
             canContinue = magicNumCheck.translate(response);
             dataLength *= 2;
-            
-            /*
-            if (response == 0xCAFEBABE)
-            {
-               dataLength *= 2;
-               if (dataLength > 4096)
-               {
-                  canContinue = false;
-               }
-            }
-            else
-            {
-               canContinue = false;
-            }*/
          }
          
          socket.close();
