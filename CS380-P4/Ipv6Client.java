@@ -21,18 +21,18 @@ public class Ipv6Client
          String address = socket.getInetAddress().getHostAddress();
          
          InetAddress srcIP = InetAddress.getLocalHost();
-         System.out.println("Src IP: " + srcIP);
          InetAddress cbxyzIP = InetAddress.getByName(new URL("https://codebank.xyz/").getHost());
-         System.out.println("Codebank.xyz IP: " + cbxyzIP);
          
          int srcIPInt = getIPInt(srcIP);
          int cbxyzIPInt = getIPInt(cbxyzIP);
          
-         System.out.println("Connected to the server " + address + "\n");
+         System.out.println("Connected to the server.");
          
          MagicNumberLookup magicNumCheck = new MagicNumberLookup();
+         
          boolean canContinue = true;
          int dataLength = 2;
+         
          // Send a total of 12 packets, starting at 2B. Double in size each time
          while (canContinue && dataLength <= 4096)
          {
@@ -84,7 +84,7 @@ public class Ipv6Client
          result = result << 8;
          result += (bIP[i] & 0xFF);
       }
-      System.out.println(" Result: " + result + " = " + String.format("%08X", result));
+      System.out.println();
       return result;
    }
 }
