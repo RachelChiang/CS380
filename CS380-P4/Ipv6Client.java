@@ -18,13 +18,18 @@ public class Ipv6Client
          // Setting up streams
          OutputStream os = socket.getOutputStream();
          InputStream is = socket.getInputStream();
-         String address = socket.getInetAddress().getHostAddress();
          
          InetAddress srcIP = InetAddress.getLocalHost();
          InetAddress cbxyzIP = InetAddress.getByName(new URL("https://codebank.xyz/").getHost());
+                  
+         byte[] srcIPB = srcIP.getAddress();
+         byte[] cbxyzIPB = cbxyzIP.getAddress();
          
-         int srcIPInt = getIPInt(srcIP);
-         int cbxyzIPInt = getIPInt(cbxyzIP);
+         /*for (int i = 0; i < srcIPB.length; ++i)
+         {
+            System.out.print(String.format("%02X", srcIPB[i]));
+         }
+         System.out.println();*/
          
          System.out.println("Connected to the server.");
          
@@ -40,7 +45,7 @@ public class Ipv6Client
             
             // Identify each packet being sent by the "data length: n"
             System.out.printf("data length: %d\n", dataLength);
-            byte[] packet = packetGen.getPacket(srcIPInt, cbxyzIPInt);
+            byte[] packet = packetGen.getPacket(srcIPB, cbxyzIPB);
             
             // Send packet to server
             for (int i = 0; i < packet.length; ++i)
@@ -72,19 +77,5 @@ public class Ipv6Client
       {
          System.out.println("Disconnected from server.");
       }
-   }
-   
-   public static int getIPInt(InetAddress ip)
-   {
-      int result = 0;
-      byte[] bIP = ip.getAddress();
-      for (int i = 0; i < bIP.length; ++i)
-      {
-         System.out.print(String.format("%02X", bIP[i]));
-         result = result << 8;
-         result += (bIP[i] & 0xFF);
-      }
-      System.out.println();
-      return result;
    }
 }

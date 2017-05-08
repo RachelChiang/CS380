@@ -13,14 +13,14 @@ private byte[] nibbleHeader;
       nibbleHeader = new byte[HEADER_SIZE];
    }
    
-   private void populateIHeader(int srcAddr, int destAddr)
+   private void populateIHeader(byte[] srcAddr, byte[] destAddr)
    {
       fill(VERSION_END, VERSION_SIZE, 6);
       fill(PLENGTH_END, PLENGTH_SIZE, dataLength);
       fill(NEXTHDR_END, NEXTHDR_SIZE, 17);
       fill(HOPLIMIT_END, HOPLIMIT_SIZE, 20);
-      fillAddr(SRCADDR_END, ADDR_SIZE, prependAddress(srcAddr));
-      fillAddr(DESTADDR_END, ADDR_SIZE, prependAddress(destAddr));
+      fillIPv4Addr(SRCADDR_END, srcAddr);
+      fillIPv4Addr(DESTADDR_END, destAddr);
       /*
        * Implement:
        *    Version [4b] = 6
@@ -42,22 +42,44 @@ private byte[] nibbleHeader;
       }
    }
    
-   private void fillAddr(int endIndex, int fieldSize, int[] value)
+   private void fillIPv4Addr(int endIndex, byte[] value)
    {
-      for (int i = 0; i < value.length; ++i)
+      byte[] nibbleAddress = new byte[ADDR_SIZE];
+      int ipv4AddrStart = nibbleAddress.length - 8;
+      int ipv6PrependStart = nibbleAddress.length - 12;
+      
+      for (int i = ipv6PrependStart; i < ipv4AddrStart; ++i)
       {
-         nibbleHeader[endIndex - fieldSize + i + 1] = (byte) (0xF & value[i]);
+         nibbleAddress[i] = (byte) 0xF;
+      }
+      
+      int j = 0;
+      for (int i = ipv4AddrStart; i < nibbleAddress.length; ++i)
+      {
+         nibbleAddress[i++] = (byte) (0xF & (value[j] >> 4));
+         nibbleAddress[i] = (byte) (0xF & value[j++]);
+      }
+      
+      /*for (int i = 0; i < nibbleAddress.length; ++i)
+      {
+         System.out.print(String.format("%01X", nibbleAddress[i]));
+      }
+      System.out.println();*/
+      
+      for (int i = 0; i < nibbleAddress.length; ++i)
+      {
+         nibbleHeader[endIndex - ADDR_SIZE + i + 1] = (byte) (0xF & nibbleAddress[i]);
       }
    }
    
-   public byte[] getPacket(int srcAddr, int destAddr)
+   public byte[] getPacket(byte[] srcAddr, byte[] destAddr)
    {
       populateIHeader(srcAddr, destAddr);
       
       byte[] packet = new byte[(HEADER_SIZE / 2) + dataLength];
       
       byte[] header = convertHeaderToBytes();
-     // printByteArray(header);
+      //printByteArray(header);
       
       for (int i = 0; i < header.length; ++i)
       {
@@ -105,31 +127,5 @@ private byte[] nibbleHeader;
             System.out.println();
          }
       }
-   }
-   
-   private int[] prependAddress(int ip)
-   {
-     // System.out.print("Address: ");
-      int[] address = new int[ADDR_SIZE];
-      for (int i = address.length - 12; i < address.length - 8; ++i)
-      {
-         address[i] = 0xF;
-      }
-      
-      int j = 28;
-      for (int i = address.length - 8; i < address.length; ++i)
-      {
-         //int value = 0xF & (ip >>> j);
-         address[i] = 0xF & (ip >>> j);
-         //System.out.println("Adding " + String.format("%01X", value));
-         j -= 4;
-      }
-      /*
-      for (int i = 0; i < address.length; ++i)
-      {
-         System.out.print(String.format("%01X", address[i]));
-      }
-      System.out.println();*/
-      return address;
    }
 }
