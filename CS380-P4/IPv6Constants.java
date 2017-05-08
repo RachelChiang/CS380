@@ -1,3 +1,13 @@
+/*
+ * Rachel Chiang
+ * CS 380.01 Computer Networks
+ * Project 4: IPv6
+ */
+
+/**
+ * This is simply an interface containing constants pertaining to the IPv6 
+ * header.
+ */
 public interface IPv6Constants
 {
    // The ending index of the relevant fields in the header
@@ -23,9 +33,11 @@ public interface IPv6Constants
  *    Payload Length [16b] = length of the whole packet in octets
  *    Next Header [8b] = UDP = 17, identifies next type of header
  *    Hop Limit [8b] = 20
- *    Source Address [128b] = an IPv4 address that has been extended to IPv6 for a device that does not use IPv6
- *    Destination Address [128b] = an IPv4 address that has been extended to IPv6 for a device that does not use IPv6
- *       using the IP address of the server you are connected to
+ *    Source Address [128b] = an IPv4 address that has been extended to IPv6
+ *       for a device that does not use IPv6
+ *    Destination Address [128b] = an IPv4 address that has been extended to
+ *       IPv6 for a device that does not use IPv6 using the IP address of the
+ *       server you are connected to
  * Don't Implement: Traffic Class [8b], Flow Label [20b]
  * 
  * IPv6 Header Format [bits]
@@ -49,13 +61,7 @@ public interface IPv6Constants
  * |PLength|NHd|HL |
  * +-+-+-+-+-+-+-+-+
  * |Src Addr [32n] |
- * |               |
- * |               |
- * |               |
  * +-+-+-+-+-+-+-+-+
  * |DestAddr [32n] |
- * |               |
- * |               |
- * |               |
  * +-+-+-+-+-+-+-+-+
  */
