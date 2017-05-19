@@ -1,4 +1,12 @@
-
+/*
+ * Rachel Chiang
+ * CS 380.01 Computer Networks
+ * Project 5: UDP Client with IPv4
+ */
+/**
+ * A super simple interface full of constants for the IPv4. Indices and sizes are
+ * counted in bits.
+ */
 public interface IPv4Constants
 {
    // These point to the ending index of each field in the header.
@@ -58,7 +66,7 @@ public interface IPv4Constants
     *       datagram must be destroyed. Modified in internet header processing.
     *       Time is measured in units of seconds. TTL is an upper bound on the
     *       time a datagram may exist
-    *    Protocol [8b] - assume TCP; this field indicates the next level protocol
+    *    Protocol [8b] - assume UDP; this field indicates the next level protocol
     *       used in the data portion of the internet diagram.
     *    Checksum [16b] - Checksum for the header
     *    SourceAddr [32b] - Source IP Address

@@ -1,21 +1,23 @@
+/*
+ * Rachel Chiang
+ * CS 380.01 Computer Networks
+ * Project 5: UDP Client with IPv4
+ */
 
+/**
+ * This class generates the IPv4 portion of the packet. Its constants can be
+ * found in the interface, {@link #IPv4Constants}. The data portion of the
+ * packet may vary, hence the {@link #getPacket(byte[])}, which is different
+ * from my previous implementation of IPv4. Otherwise, this class has been left
+ * relatively untouched, other than organizational changes.
+ */
 public class IPv4Generator extends HeaderGenerator implements IPv4Constants
 {
    /**
     * This is an array that will be filled with 0's or 1's and represents the
-    * Internet header. I chose to fill it in binary because it just seemed more
-    * straightforward (to me) to handle the data as individual bits. Perhaps to
-    * make generating the packet faster (and more space efficient), it would be
-    * better to forgo generating a binary header and simply directly populate
-    * the whole packet. However, if it is like this, it makes it convenient,
-    * readable, and modifiable to generalize filling the header (see {@link
-    * #fill(int, int, int)}. This array is initialized in the {@link
-    * #PacketGenerator(int)} with a size of 160 because there are 5 rows of 32
-    * bits in the header (and we are ignoring the row for Options and Padding).
-    * The default values of an array are initially zero, so I chose to ignore
-    * zeroing out certain fields. bitHeader is populated in {@link
-    * #populateIHeader()} and its values are eventually copied over as Bytes to
-    * the actual full Byte packet in {@link #getPacket()}.
+    * Internet header. It is filled in {@link #fill(int, int, int)}. This array
+    * is initialized in the {@link #PacketGenerator(int)}. Its values are even-
+    * tually copied over as Bytes in {@link #getPacket()}.
     */
    private byte[] bitHeader;
    
@@ -24,6 +26,12 @@ public class IPv4Generator extends HeaderGenerator implements IPv4Constants
     */
    private int dataLength;
    
+   /**
+    * The constructor, which calls on {@link #populateIHeader(byte[], byte[])}.
+    * @param dataLength - The length of the data portion in bytes
+    * @param srcAddr - The byte array representing the source address
+    * @param destAddr - The byte array representing the destination address
+    */
    public IPv4Generator(int dataLength, byte[] srcAddr, byte[] destAddr)
    {
       this.dataLength = dataLength;
@@ -31,8 +39,16 @@ public class IPv4Generator extends HeaderGenerator implements IPv4Constants
       populateIHeader(srcAddr, destAddr);
    }
    
+   /**
+    * This method is to be called outside of the class. It creates the proper
+    * packet by pulling together the {@link #bitHeader} and using the helper
+    * {@link #convertHeaderToBytes()}.
+    * @return It returns the whole packet, which has a size equal to the
+    *    Internet header plus the {@link #dataLength}. 
+    */
    public byte[] getPacket(byte[] data)
    {
+      // Transfer the bitHeader information to the full byte packet
       byte[] packet = new byte[(HEADER_SIZE/8) + dataLength];
       
       byte[] header = convertHeaderToBytes();
@@ -48,46 +64,19 @@ public class IPv4Generator extends HeaderGenerator implements IPv4Constants
          return null;
       }
       
+      // Add the data
       int j = 0;
       for (int i = header.length; i < packet.length; ++i)
       {
          packet[i] = data[j++];
       }
       
-      //printPacket(packet);
-      
       return packet;
    }
    
-   private void printPacket(byte[] packet)
-   {
-      System.out.print("IPv4 Packet: ");
-      int c = 0;
-      for (int i = 0; i < packet.length; ++i)
-      {
-         
-         System.out.print(String.format("%02X", packet[i]));
-         ++c;
-         if (c == 4)
-         {
-            System.out.print(" ");
-            c = 0;
-         }
-      }
-      System.out.println();
-   }
-   
    /**
-    * This method is basically just the overhead. It calls a different method
-    * {@link #fill(int, int, int)}, which handles the bulk of the work. Since
-    * there are a lot of constants, I decided to make a separate Interface
-    * {@link #PacketConstants.java} to hold onto them. I considered using a
-    * nested enum or some sort of data structure to hold the indices, sizes, and
-    * values, but I think the Interface approach is the easiest to read, access,
-    * and modify. However, it is notably appealing to have an enum or a vector
-    * of triples because this method could simply be one for loop instead of 8
-    * individual {@link #fill(int, int, int)} calls, but the checksum might
-    * have to be individually called anyway since its value is not constant.
+    * This method deals with overhead. It calls a different method {@link
+    * #fill(int, int, int)} to actually fill the IPv4 segments.
     */
    private void populateIHeader(byte[] srcAddr, byte[] destAddr)
    {
@@ -101,8 +90,8 @@ public class IPv4Generator extends HeaderGenerator implements IPv4Constants
       
       // Length [16b]: size of datagram in octets
       //    IH[bits] = 5 rows of 32 bits = 160
-      //    value = dataLength + IH[bits]/octet = dataLength + 160/8
-      fill(LENGTH_END, LENGTH_SIZE, (dataLength + (160 / 8)));
+      //    value = dataLength + headerSize/octet
+      fill(LENGTH_END, LENGTH_SIZE, (dataLength + (HEADER_SIZE / 8)));
       
       // Flags [3b]: no fragmentation
       //    value = b0b1b2[bin]
@@ -120,7 +109,7 @@ public class IPv4Generator extends HeaderGenerator implements IPv4Constants
       //    Assume UDP --> value = UDP = 17
       fill(PROTOCOL_END, PROTOCOL_SIZE, 17);
       
-      // Addresses [32b]: Src = choice addr, Dest = server IP = 0x3425589A
+      // Addresses [32b]: Src = choice addr, Dest = server
       fill(SRCADDR_END, ADDR_SIZE, byteAddrToInt(srcAddr));
       fill(DESTADDR_END, ADDR_SIZE, byteAddrToInt(destAddr));
       
@@ -147,11 +136,11 @@ public class IPv4Generator extends HeaderGenerator implements IPv4Constants
    }
    
    /**
-    * This method simply converts the {@link #bitHeader} into a true Byte array.
-    * That is, instead of being filled with 1-bit values, it has 8-bit values
-    * that represent the original 1-bit values. It uses {@link
-    * #accumulateBits(int)} for help.
-    * @return - the header, as actual Bytes.
+    * This method simply converts the {@link #bitHeader} into a Byte array. That
+    * is, instead of being filled with 1-bit values, it has 8-bit values that
+    * represent the original 1-bit values. It uses {@link #accumulateBits(int)}
+    * for help.
+    * @return - The header, in Bytes.
     */
    private byte[] convertHeaderToBytes()
    {

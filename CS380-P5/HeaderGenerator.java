@@ -1,25 +1,27 @@
-
+/*
+ * Rachel Chiang
+ * CS 380.01 Computer Networks
+ * Project 5: UDP Client with IPv4
+ */
+/**
+ * This is more like a shared checksum class.
+ */
 public abstract class HeaderGenerator
 {
    /**
     * This method implements the Internet checksum algorithm. It is almost
-    * identical to the one used in Exercise 3, but I removed the parameter.
-    * Before beginning the algorithm, it generates the header in Bytes using
-    * {@link #convertHeaderToBytes()}, which is necessary because the {@link
-    * #bitHeader} is filled with bits, despite its data type. The algorithm
-    * traverses the newly-created header two Bytes at a time, combining these
-    * two Bytes into a 16-bit value, which is added to the sum. Every time the
-    * new sum is calculated, it must pass an overflow check. If an overflow
-    * occurred, then we logical-and the sum with 0xFFFF (thereby dropping the
-    * overflow but keeping the lower-order 16 bits) and then add 1, functioning
-    * as a "wrap-around". Finally, when the sum has been calculated, the
-    * complement of the sum is calculated and only the rightmost 16 bits are
-    * returned.
-    * @return - the checksum corresponding to the Byte array header
+    * identical to the one used in Exercise 3. The algorithm traverses the header
+    * two Bytes at a time, combining them into a 16-bit value, which is added to
+    * the sum. Every time the new sum is calculated, it must pass an overflow
+    * check. If an overflow occurred, then we logical-and the sum with 0xFFFF
+    * (thereby dropping the overflow but keeping the lower-order 16 bits) and
+    * then add 1, functioning as a "wrap-around". Finally, when the sum has been
+    * calculated, the complement of the sum is calculated and only the rightmost
+    * 16 bits are returned.
+    * @return - The checksum corresponding to the Byte array header
     */
    public short checksum(byte[] header)
    {
-      // Here we begin the actual algorithm.
       long sum = 0;
       int i = 0;
       while (i < header.length)
@@ -48,7 +50,6 @@ public abstract class HeaderGenerator
             ++sum;
          }
       }
-      // System.out.println(String.format(" Checksum: %04X", (short) (~(sum & 0xFFFF))));
       return (short) (~(sum & 0xFFFF));
    }
    
@@ -71,7 +72,6 @@ public abstract class HeaderGenerator
          result = result << 8;
          result += (int) (0xFF & address[i]);
       }
-      //System.out.println(String.format("%08X", result));
       return result;
    }
 }

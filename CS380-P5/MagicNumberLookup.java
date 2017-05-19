@@ -1,3 +1,8 @@
+/*
+ * Rachel Chiang
+ * CS 380.01 Computer Networks
+ * Project 5: UDP Client with IPv4
+ */
 import java.util.HashMap;
 
 /**
@@ -26,8 +31,8 @@ public class MagicNumberLookup
     */
    private void populateTable()
    {
-      table.put(0xCAFEBABE, "Packet was correct!");
-      table.put(0xBAADF00D, "Error: IPv4 Packet!");
+      table.put(0xCAFEBABE, "Correct!");
+      table.put(0xBAADF00D, "Error: IPv4 Packet");
       table.put(0xCAFED00D, "Error: UDP Destination Port");
       table.put(0xDEADC0DE, "Error: UDP Checksum");
       table.put(0xBBADBEEF, "Error: UDP Data Length");
