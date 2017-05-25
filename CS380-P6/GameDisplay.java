@@ -1,17 +1,13 @@
+import npMessage.BoardMessage;
 
-public class Display
+public class GameDisplay
 {
-   public Display()
-   {
-      
-   }
-   
-   public void show(BoardMessage.Status status, byte turn, byte[][] board)
+   public boolean gameContinue(BoardMessage.Status status, byte turn, byte[][] board)
    {
       printStatus(status, turn);
       
       System.out.println("   0  1  2");
-      
+
       for (int row = 0; row < board.length; ++row)
       {
          System.out.print(row + " ");
@@ -34,6 +30,14 @@ public class Display
          }
          System.out.println();
       }
+
+      if (status == BoardMessage.Status.IN_PROGRESS)
+      {
+         return true;
+      }
+      
+      System.out.println("The game has ended!");
+      return false;
    }
    
    private void printStatus(BoardMessage.Status status, byte turn)
@@ -69,23 +73,14 @@ public class Display
       }
    }
    
-   public boolean printErrorMsg(String s)
+   public boolean processErrorMsg(String s)
    {
-      if (s.equals("Game stopping."))
+      if (s.equals("Game stopping.") || s.equals("Name in use."))
       {
-         System.out.println("Ending communication.");
+         System.out.println(s + " Communication with the server has ended.");
          return false;
       }
       System.out.println("ERROR: " + s);
       return true;
-   }
-   
-   public void printOtherOptions()
-   {
-      String options = "OTHER OPTIONS: \n"
-            + "  \'p\' to list the players\n"
-            + "  \'s\' to surrender\n"
-            + "To return to the previous menu, input \'r\'.";
-      System.out.println(options);
    }
 }
