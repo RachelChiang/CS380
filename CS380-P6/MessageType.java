@@ -1,4 +1,4 @@
-package npMessage;
+
 public enum MessageType {
 
     CONNECT, COMMAND, BOARD, MOVE, ERROR;

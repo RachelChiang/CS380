@@ -1,13 +1,22 @@
+/*
+ * Rachel Chiang
+ * CS 380.01 Computer Networks
+ * Project 6: Tic-Tac-Toe
+ */
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 
-import npMessage.CommandMessage;
-import npMessage.ConnectMessage;
-import npMessage.Message;
-import npMessage.MoveMessage;
-
+/**
+ * This class is the thread that handles communication between the user and the
+ * ObjectOutputStream, which it uses to send Messages to the server. To begin
+ * the game, the user must first give a username using a ConnectMessage, then
+ * establish a new game using the CommandMessage. Once the game begins, the user
+ * will be taken to a menu that lists the corresponding integers to make a move
+ * or end the game. Unfortunately, the commands LIST_PLAYER and SURRENDER do not
+ * appear to have been deprecated since they don't function in any way.
+ */
 public class WriteThread implements Runnable
 {
    private Socket socket;
@@ -22,7 +31,8 @@ public class WriteThread implements Runnable
    {
       try
       {
-         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+         ObjectOutputStream oos =
+               new ObjectOutputStream(socket.getOutputStream());
          UserInterface ui = new UserInterface();
          
          String userIn = ui.getUsername();
@@ -41,42 +51,46 @@ public class WriteThread implements Runnable
          
          while (wantContinue)
          {
-            // QOL, at least it is to me.
+            // QOL, at least it is to me. Usually the receiving a response takes
+            // a bit of time, so the Board doesn't get printed immediately, so
+            // I decided to make this thread wait just a little bit. 800 ms is
+            // what works on my computer though, so I realize this may not be so
+            // nice on other computers if the connection is not similar enough
             Thread.sleep(800);
             
+            // It might display an action menu. I think playing is smoother if
+            // the main action menu is not printed every player turn. You can
+            // display this menu by inputting -1 in one of the two position
+            // requests. This seems unimportant now that I've removed all of
+            // the deprecated commands though. :\
             decision = ui.askMove();
             
             if (decision == 0) // make move
             {
+               // asks what position the user wants to move in
                byte row = ui.requestPosition("row");
                byte col = ui.requestPosition("col");
                if (row != -1 && col != -1)
                {
+                  // sends the message as long as it wasn't a "return to main
+                  // action menu" input (-1 for at least one of the two)
                   msg = new MoveMessage(row, col);
                   oos.writeObject(msg);
                }
             }
-            else if (decision == 1) // list player
-            {
-               //msg = new CommandMessage(CommandMessage.Command.LIST_PLAYERS);
-               //oos.writeObject(msg);
-               // I don't get why this command ends the game
-            }
-            else if (decision == 2) // surrender
-            {
-               msg = new CommandMessage(CommandMessage.Command.SURRENDER);
-               oos.writeObject(msg);
-               wantContinue = false;
-            }
-            else if (decision == 3) // end game
+            else if (decision == 1) // end game
             {
                wantContinue = false;
             }
          }
          
+         // The loop ends ONLY if there was an end game issued by the human
          msg = new CommandMessage(CommandMessage.Command.EXIT);
          oos.writeObject(msg);
       } catch (SocketException se) {
+         // The connection was likely terminated by the server, so the Listen
+         // Thread may have closed the socket, meaning this exception would be
+         // thrown
          System.out.println("Communication with the server has ended.");
       } catch (IOException ioe) {
          System.out.println("[WT] Unexpected IO error occurred.");

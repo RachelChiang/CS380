@@ -1,8 +1,36 @@
-import npMessage.BoardMessage;
+/*
+ * Rachel Chiang
+ * CS 380.01 Computer Networks
+ * Project 6: Tic-Tac-Toe
+ */
 
+/**
+ * This class simply deals with the display. It is only used by the listening
+ * thread, {@link #ListenThread.java}. It prints the status, turn, and board in
+ * {@link #gameContinue(BoardMessage.Status, byte, byte[][])} and the
+ * {@link #printStatus(BoardMessage.Status, byte)} methods. It also
+ * can print an error message using {@link #processErrorMsg(String)}.
+ */
 public class GameDisplay
 {
-   public boolean gameContinue(BoardMessage.Status status, byte turn, byte[][] board)
+   /**
+    * This method prints the status, turn, and game board. The status and turn
+    * are actually printed by the private method
+    * {@link #printStatus(BoardMessage.Status, byte)}. The board is
+    * printed after that in a bracketed configuration with the row and column
+    * numbers on the top and left sides. An empty board looks like this:
+    *    0  1  2
+    * 0 [ ][ ][ ]
+    * 1 [ ][ ][ ]
+    * 2 [ ][ ][ ]
+    * @param status - the status from the BoardMessage
+    * @param turn - the turn from the BoardMessage
+    * @param board - the board from the BoardMessage
+    * @return - true if the game should continue and false if the game is ending
+    */
+   public boolean gameContinue(BoardMessage.Status status,
+                              byte turn,
+                              byte[][] board)
    {
       printStatus(status, turn);
       
@@ -36,10 +64,17 @@ public class GameDisplay
          return true;
       }
       
+      // If it's not IN_PROGRESS, that means that a surrender, victory,
+      // stalemate, or error occurred.
       System.out.println("The game has ended!");
       return false;
    }
    
+   /**
+    * This method simply prints the turn number and status.
+    * @param status - the status from the BoardMessage
+    * @param turn - the turn from the BoardMessage
+    */
    private void printStatus(BoardMessage.Status status, byte turn)
    {
       System.out.println("TURN: " + turn);
@@ -68,15 +103,22 @@ public class GameDisplay
             System.out.println("Error occurred!");
             break;
          default:
-            System.out.println("You shouldn't be here.");
             break;
       }
    }
    
+   /**
+    * This method prints the error message. The server may end communication
+    * depending on the error.
+    * @param s - the string from the ErrorMessage
+    * @return - true if the game can continue after this error or false if the
+    *       game ends after the error
+    */
    public boolean processErrorMsg(String s)
    {
       if (s.equals("Game stopping.") || s.equals("Name in use."))
       {
+         // When the server sends these, the server kills communication
          System.out.println(s + " Communication with the server has ended.");
          return false;
       }

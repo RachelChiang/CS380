@@ -7,6 +7,18 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+/**
+ * This project involves passing (Serializable) messages back and forth between
+ * the server to play a game of Tic-Tac-Toe. The required steps are as follows:
+ *   1. Establish a socket to codebank.xyz on port 38006.
+ *   2. Send a ConnectMessage identifying yourself.
+ *   3. Send a CommandMessage to start a new game with the server.
+ *   4. The server will respond with a BoardMessage showing the starting board
+ *      configuration.
+ *   5. Send a MoveMessage indicating where you are making your move.
+ *   6. The server will move and reply with another BoardMessage.
+ *   (5 and 6 repeat until the game ends)
+ */
 public class TicTacToeClient
 {
    public static void main(String[] args)
@@ -26,19 +38,3 @@ public class TicTacToeClient
       }
    }
 }
-
-/*
- * Establish socket via codebank.xyz on port 38006. Then, begin the game:
- *   1. Send a ConnectMessage identifying yourself
- *   2. Send a CommandMessage to start a new game with the server. You
- *      are always the first player and the server will be second.
- *   3. The server will respond with a BoardMessage showing the starting
- *      board configuration.
- *   4. Send a MoveMessage indicating where you are making your move.
- *   5. The server will move and reply with another BoardMessage.
- *   (3-5 continues until the game ends)
- * 
- *   If a problem occurs, the server will respond with an ErrorMessage.
- *   It will be useful to create a separate listening thread for this
- *   project.
- */

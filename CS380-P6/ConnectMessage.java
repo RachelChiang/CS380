@@ -1,4 +1,4 @@
-package npMessage;
+
 public final class ConnectMessage extends Message {
 
     private static final long serialVersionUID = 0L;

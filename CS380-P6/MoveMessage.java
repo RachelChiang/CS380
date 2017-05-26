@@ -1,4 +1,4 @@
-package npMessage;
+
 public final class MoveMessage extends Message {
 
     private static final long serialVersionUID = 0L;
