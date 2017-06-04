@@ -1,7 +1,10 @@
-
+/*
+ * Rachel Chiang
+ * CS 380.01 Computer Networks
+ * Project 7: File Transfer (Encryption)
+ */
 public class FileTransfer
 {
-
    public static void main(String[] args)
    {
       String invalidInputResponse = "Invalid command line arguments.\n"
@@ -12,7 +15,7 @@ public class FileTransfer
       try
       {
          /*
-          * command line: makekeys, server, client
+          * commands: makekeys, server, client
           *   makekeys
           *   server <privateKeyFile> <serverListenPortNumber>
           *   client <publicKeyFile> <serverHost> <serverListenPortNumber>
@@ -26,7 +29,6 @@ public class FileTransfer
          }
          else if (args[0].equals("server"))
          {
-            System.out.println("(Beginning)");
             FileServer server = new FileServer(args[1], args[2]);
          }
          else if (args[0].equals("client"))

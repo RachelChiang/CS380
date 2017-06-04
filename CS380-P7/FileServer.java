@@ -7,7 +7,6 @@ import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Scanner;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 import java.io.File;
@@ -19,197 +18,6 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-
-public class FileServer
-{
-   private ServerSocket serverSocket;
-   private Key clientKey;
-   private int nextSeqNum;
-   private int chunkSize;
-   private ArrayList<Byte> allChunks;
-   private String fileName;
-   private long fileSize;
-   
-   public FileServer(String privateKeyFile, String listenPortNumber)
-   {
-      try
-      {
-         ObjectInputStream fois = new ObjectInputStream(new FileInputStream(new File(privateKeyFile)));
-         Key privateKey = (Key) fois.readObject();
-         fois.close();
-         serverSocket = new ServerSocket(Integer.parseInt(listenPortNumber));
-         clientKey = null;
-         nextSeqNum = -1;
-         chunkSize = -1;
-         allChunks = null;
-         fileName = "";
-         fileSize = 0;
-         
-         while (true)
-         {
-            // Client connected
-            try (Socket socket = serverSocket.accept())
-            {
-               String address = socket.getInetAddress().getHostAddress();
-               System.out.printf("Client connected: %s%n", address);
-               // Client will send instances of sub-classes of Message
-               // Based on type of Message, server performs different actions
-               ObjectInputStream ois = new ObjectInputStream(
-                     socket.getInputStream());
-               Message msg = null;
-               boolean wantContinue = true;
-               System.out.println("Beginning communications...");
-               
-               ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-               
-               while (wantContinue)
-               {
-                  msg = (Message) ois.readObject();
-                  System.out.println("Read message of type " + msg.getType());
-                  
-                  if (msg.getType() == MessageType.DISCONNECT)
-                  {
-                     wantContinue = false;
-                     if (nextSeqNum > 0 && allChunks != null && !(fileName.equals("")))
-                     {
-                        // file transfer occurred
-                        outputFile();
-                     }
-                     socket.close();
-                  }
-                  else if (msg.getType() == MessageType.START)
-                  {
-                     Cipher cipher;
-                     try {
-                        cipher = Cipher.getInstance("RSA");
-                        cipher.init(Cipher.UNWRAP_MODE, privateKey);
-                        clientKey = cipher.unwrap(((StartMessage) msg).getEncryptedKey(), "AES", Cipher.SECRET_KEY);
-                        chunkSize = ((StartMessage) msg).getChunkSize();
-                        nextSeqNum = 0;
-                        allChunks = new ArrayList<Byte>();
-                        fileName = ((StartMessage) msg).getFile();
-                        fileSize = ((StartMessage) msg).getSize();
-                        System.out.println("Receiving file of size " + fileSize);
-                     } catch (NoSuchAlgorithmException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                     } catch (NoSuchPaddingException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                     } catch (InvalidKeyException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                     }
-                     oos.writeObject(new AckMessage(nextSeqNum));
-                  }
-                  else if (msg.getType() == MessageType.STOP)
-                  {
-                     // TODO: Discard file transfer and respond with an AckMessage with seqNum -1
-                     oos.writeObject(new AckMessage(-1));
-                  }
-                  else if (msg.getType() == MessageType.CHUNK)
-                  {
-                     if (clientKey != null)
-                     {
-                        // File Transfer has been initiated
-                        // Check Chunk.seqNum such that it is indeed the next expected
-                        // seqNum by the server
-                        if (((Chunk) msg).getSeq() == nextSeqNum)
-                        {
-                           // It is, so server should decrypt data stored
-                           // in the Chunk using session key
-                           try {
-                              Cipher cipher = Cipher.getInstance("AES");
-                              cipher.init(Cipher.DECRYPT_MODE, clientKey);
-                              byte[] outputChunk = cipher.doFinal(((Chunk) msg).getData());
-                              // Calculate CRC32 value for decrypted data
-                              Checksum crc32 = new CRC32();
-                              crc32.update(outputChunk, 0, outputChunk.length);
-                              long errorCode = crc32.getValue();
-                              //System.out.println((int) errorCode + " ? " + ((Chunk) msg).getCrc());
-                              // compare it with the CRC32 value included in the chunk
-                              if (((Chunk) msg).getCrc() == ((int) errorCode))
-                              {
-                                 // If values match, server should accept the chunk by storing
-                                 // the data and incrementing the next expected seqNum
-                                 acceptChunk(outputChunk);
-                                 ++nextSeqNum;
-                              }
-                           } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
-                              // TODO Auto-generated catch block
-                              e.printStackTrace();
-                           } catch (InvalidKeyException e) {
-                              // TODO Auto-generated catch block
-                              e.printStackTrace();
-                           } catch (IllegalBlockSizeException e) {
-                              // TODO Auto-generated catch block
-                              e.printStackTrace();
-                           } catch (BadPaddingException e) {
-                              // TODO Auto-generated catch block
-                              e.printStackTrace();
-                           }
-                        }
-                        // Server responds with an AckMessage with seqNum of the next
-                        // expected chunk
-                        Message response = new AckMessage(nextSeqNum);
-                        oos.writeObject(response);
-                        
-                        // after the client has finished sending chunks, client can begin a new file
-                        // transfer or disconnect
-                     }
-                  }
-               }
-               
-               socket.close();
-            } catch (ClassNotFoundException cnfe) {
-               cnfe.printStackTrace(System.err);
-            }
-         }
-      } catch (NumberFormatException nfe) {
-         System.out.println("Could not find value for the ListenPortNumber.");
-         nfe.printStackTrace(System.err);
-      } catch (IOException ioe) {
-         ioe.printStackTrace(System.err);
-      } catch (ClassNotFoundException cfe) {
-         cfe.printStackTrace(System.err);
-      }
-   }
-
-   private void acceptChunk(byte[] outputChunk)
-   {
-      for (int i = 0; i < outputChunk.length; ++i)
-      {
-         allChunks.add(outputChunk[i]);
-      }
-      System.out.println("Chunk received: [" + nextSeqNum + "/" + (Math.ceil((double)fileSize/chunkSize)) + "]");
-   }
-   
-   private void outputFile()
-   {
-      fileName = fileName.substring(0, fileName.indexOf('.')) + "2.txt";
-      System.out.println("Transfer complete.");
-      System.out.println("Output path: " + fileName);
-      try {
-         FileOutputStream fos = new FileOutputStream(new File(fileName));
-         
-         byte[] fileArray = new byte[allChunks.size()];
-         for (int i = 0; i < fileArray.length; ++i)
-         {
-            fileArray[i] = allChunks.get(i);
-         }
-         
-         fos.write(fileArray);
-         
-         fos.close();
-      } catch (FileNotFoundException e) {
-         // TODO Auto-generated catch block
-         e.printStackTrace();
-      } catch (IOException e) {
-         // TODO Auto-generated catch block
-         e.printStackTrace();
-      }
-   }
-}
 
 /*
  *  0. Wait for client to connect. Once connected, client will send instances of
@@ -249,3 +57,235 @@ public class FileServer
         The client recognizes this when the server responds with ACK n
         (where n is the total number of chunks in the file).
  */
+
+// TODO: comment, organize
+// TODO: FIX. Same server cannot receive from multiple separately, sequentially
+// executed clients. Disconnect might not be working right
+// TODO: Make sure same client can transmit more than one file
+public class FileServer
+{
+   private ServerSocket serverSocket;
+   private Key privateKey;
+   private Key clientKey;
+   private int nextSeqNum;
+   private ArrayList<Byte> allChunks;
+   private String fileName;
+   private int fileInChunks;
+   private boolean clientConnected;
+   
+   public FileServer(String privateKeyFile, String listenPortNumber)
+   {
+      if(init(privateKeyFile, listenPortNumber))
+      {
+         reset();
+         run();
+      }
+      else
+      {
+         System.out.println("Could not start server. Please make sure your command line arguments are correct.");
+      }
+   }
+   
+   private boolean init(String privateKeyFile, String listenPortNumber)
+   {
+      try {
+         serverSocket = new ServerSocket(Integer.parseInt(listenPortNumber));
+         
+         ObjectInputStream fois = new ObjectInputStream(new FileInputStream(new File(privateKeyFile)));
+         privateKey = (Key) fois.readObject();
+         fois.close();
+      } catch (NumberFormatException e1) {
+         e1.printStackTrace();
+         return false;
+      } catch (IOException e1) {
+         e1.printStackTrace();
+         return false;
+      } catch (ClassNotFoundException cfe) {
+         cfe.printStackTrace(System.err);
+         return false;
+      }
+      return true;
+   }
+
+   private void acceptChunk(byte[] outputChunk)
+   {
+      for (int i = 0; i < outputChunk.length; ++i)
+      {
+         allChunks.add(outputChunk[i]);
+      }
+      System.out.println("Chunk received: [" + nextSeqNum + "/" + fileInChunks + "]");
+   }
+   
+   private void outputFile()
+   {
+      fileName = fileName.substring(0, fileName.indexOf('.')) + "2.txt";
+      System.out.println("Transfer complete.");
+      System.out.println("Output path: " + fileName);
+      try {
+         FileOutputStream fos = new FileOutputStream(new File(fileName));
+         
+         byte[] fileArray = new byte[allChunks.size()];
+         for (int i = 0; i < fileArray.length; ++i)
+         {
+            fileArray[i] = allChunks.get(i);
+         }
+         
+         fos.write(fileArray);
+         
+         fos.close();
+      } catch (FileNotFoundException e) {
+         e.printStackTrace(System.err);
+      } catch (IOException e) {
+         e.printStackTrace(System.err);
+      }
+   }
+   
+   private void reset()
+   {
+      clientKey = null;
+      nextSeqNum = -1;
+      fileInChunks = 0;
+      allChunks = null;
+      fileName = "";
+      clientConnected = true;
+   }
+   
+   private void run()
+   {
+      while (true)
+      {
+         // Client connected
+         try (Socket socket = serverSocket.accept())
+         {
+            String address = socket.getInetAddress().getHostAddress();
+            System.out.printf("Client connected: %s%n", address);
+            // Client will send instances of sub-classes of Message
+            // Based on type of Message, server performs different actions
+            ObjectInputStream ois = new ObjectInputStream(
+                  socket.getInputStream());
+            Message msg = null;
+            //wantContinue = true;
+            System.out.println("Beginning communications...");
+            
+            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+            
+            while (clientConnected)
+            {
+               msg = (Message) ois.readObject();
+               System.out.println("Read message of type " + msg.getType());
+               handleMessage(msg);
+               oos.writeObject(new AckMessage(nextSeqNum));
+            }
+            
+            ois.close();
+            oos.close();
+            socket.close();
+         } catch (ClassNotFoundException cnfe) {
+            cnfe.printStackTrace(System.err);
+         } catch (IOException ioe) {
+            ioe.printStackTrace(System.err);
+         }
+      }
+   }
+   
+   private void handleMessage(Message clientMsg)
+   {
+      switch (clientMsg.getType())
+      {
+         case DISCONNECT:
+            handleMessage(((DisconnectMessage) clientMsg));
+            break;
+         case START:
+            handleMessage(((StartMessage) clientMsg));
+            break;
+         case STOP:
+            handleMessage(((StopMessage) clientMsg));
+            break;
+         case CHUNK:
+            handleMessage(((Chunk) clientMsg));
+            break;
+         default:
+            System.out.println("PAUSE and RESUME Messages are not handled by this server.");
+            break;
+      }
+   }
+   
+   private void handleMessage(DisconnectMessage clientMsg)
+   {
+      clientConnected = false;
+   }
+   
+   private void handleMessage(StartMessage clientMsg)
+   {
+      Cipher cipher;
+      try {
+         cipher = Cipher.getInstance("RSA");
+         cipher.init(Cipher.UNWRAP_MODE, privateKey);
+         clientKey = cipher.unwrap(clientMsg.getEncryptedKey(), "AES", Cipher.SECRET_KEY);
+         nextSeqNum = 0;
+         allChunks = new ArrayList<Byte>();
+         fileName = clientMsg.getFile();
+         fileInChunks = (int) Math.ceil((double) clientMsg.getSize()/clientMsg.getChunkSize());
+         System.out.println("Receiving file of size " + clientMsg.getSize());
+      } catch (NoSuchAlgorithmException e) {
+         e.printStackTrace(System.err);
+      } catch (NoSuchPaddingException e) {
+         e.printStackTrace(System.err);
+      } catch (InvalidKeyException e) {
+         e.printStackTrace(System.err);
+      }
+   }
+   
+   private void handleMessage(StopMessage clientMsg)
+   {
+      reset();
+   }
+   
+   private void handleMessage(Chunk clientMsg)
+   {
+      if (clientKey != null)
+      {
+         // File Transfer has been initiated
+         // Check Chunk.seqNum such that it is indeed the next expected
+         // seqNum by the server
+         if (clientMsg.getSeq() == nextSeqNum)
+         {
+            // It is, so server should decrypt data stored
+            // in the Chunk using session key
+            try {
+               Cipher cipher = Cipher.getInstance("AES");
+               cipher.init(Cipher.DECRYPT_MODE, clientKey);
+               byte[] outputChunk = cipher.doFinal(clientMsg.getData());
+               // Calculate CRC32 value for decrypted data
+               Checksum crc32 = new CRC32();
+               crc32.update(outputChunk, 0, outputChunk.length);
+               long errorCode = crc32.getValue();
+               //System.out.println((int) errorCode + " ? " + ((Chunk) msg).getCrc());
+               // compare it with the CRC32 value included in the chunk
+               if (clientMsg.getCrc() == ((int) errorCode))
+               {
+                  // If values match, server should accept the chunk by storing
+                  // the data and incrementing the next expected seqNum
+                  acceptChunk(outputChunk);
+                  ++nextSeqNum;
+               }
+            } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
+               e.printStackTrace(System.err);
+            } catch (InvalidKeyException e) {
+               e.printStackTrace(System.err);
+            } catch (IllegalBlockSizeException e) {
+               e.printStackTrace(System.err);
+            } catch (BadPaddingException e) {
+               e.printStackTrace(System.err);
+            }
+         }
+         
+         // after the client has finished sending chunks, client can begin a new file
+         // transfer or disconnect
+         if (nextSeqNum == fileInChunks)
+         {
+            outputFile();
+         }
+      }
+   }
+}
