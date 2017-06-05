@@ -1,3 +1,8 @@
+/*
+ * Rachel Chiang
+ * CS 380.01 Computer Networks
+ * Project 7: File Transfer (Encryption)
+ */
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -20,60 +25,130 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 /*
- *  0. Wait for client to connect. Once connected, client will send instances of
-    sub-classes of Message. Based on the type of Message, the server will
-    perform different actions:
-     - Client sends DisconnectMessage: server should close connection and wait
-       for a new one.
-     - Client sends StartMessage: server should prepare for a file transfer
-       based on the information in the message. It should then respond to the
-       client with an AckMessage with sequence number 0. If the server is
-       unable to begin the file transfer, it should respond with an AckMessage
-       with seqNum -1
-       File Transfer Preparation:
-        - Decrypt client session key from StartMessage using the server's
-          private key to an instance of Key. Use Cipher.UNWRAP_MODE to decrypt
-          the key. Assume both sides use AES for the symmetric encryption
-          algorithm
-     - Client sends StopMessage: server should discard the file transfer and
-       respond with an AckMessage with seqNum -1
-     - Client sends a Chunk and File Transfer has been initiated, server must
-       handle the Chunk with the following steps:
-        1. Check Chunk's seqNum such that it is indeed the next expected
-           seqNum by the server.
-        2. If it is, the server should decrypt the data stored in the Chunk
-           using the session key from the transfer initialization step
-        3. Server should calculate the CRC32 value for the decrypted data and
-           compare it with the CRC32 value included in the chunk
-        4. If these values match and the seqNum of the chunk is the next
-           expected seqNum, the server should accept the chunk by storing the
-           data and incrementing the next expected seqNum
-        5. Server should respond with an AckMessage with seqNum of the next
-           expected chunk
-        Example: client sends chunk 0 and the server expects chunk 0
-                 If the server accepts chunk 0, server responds with ACK 1.
-                 Otherwise, it responds to the client with ACK 0.
-        Once the final chunk has been accepted, the transfer is complete.
-        The client recognizes this when the server responds with ACK n
-        (where n is the total number of chunks in the file).
+ * This class contains the server processes. The functionality is as follows:
+ *   The server will wait for a client to connect. Once connected, client will
+ *   send instances of sub-classes of Message. Based on the type of Message, the
+ *   server will perform different actions. If the client sends a...
+ *    - DisconnectMessage: the server should close connection and wait for a new
+ *      client to connect
+ *    - StartMessage: the server should prepare for a file transfer based on the
+ *      information from the message. It should then respond to the client with
+ *      an AckMessage with the sequence number set to 0. If the server is unable
+ *      to begin the file transfer, it should respond with an AckMessage with
+ *      the sequence number set to -1.
+ *        File Transfer Preparation: Decrypt the client session key from the
+ *        StartMessage using the server's private key to an instance of Key. Use
+ *        Cipher.UNWRAP_MODE to decrypt the key. Assume both sides use AES for
+ *        the symmetric encryption algorithm.
+ *    - StopMessage: the server should discard the file transfer and respond
+ *      with an AckMessage with the sequence number set to -1.
+ *    - Chunk: If the file transfer has already been initiated, the server must
+ *      handle the Chunk with the following steps:
+ *       1. Check the Chunk's sequence number such that it is indeed the next
+ *          expected sequence number by the server.
+ *       2. If it is, the server should decrypt the data stored in the Chunk
+ *          using the session key from the transfer initialization step.
+ *       3. The server should calculate the CRC32 value for the decrypted data
+ *          and compare it with the CRC32 value included in the chunk.
+ *       4. If the CRC32 values match and the sequence number of the chunk has
+ *          been verified, the server should accept the chunk by storing the
+ *          data and incrementing the next expected sequence number.
+ *       5. The server should respond with an AckMessage with the sequence num-
+ *          ber corresponding to the next expected chunk.
+ *       Once the final chunk has been accepted, the transfer is finished. The
+ *       client recognizes this when the server responds with an AckMessage with
+ *       sequence number of n, where n is the total number of chunks in the
+ *       file.
+ *       Example:
+ *         If the client sends chunk 0 and the server expects chunk 0, then the
+ *         server will accept the chunk and respond with an AckMessage with a
+ *         seqNum of 1. Otherwise, it will respond to the client with seqNum 0.
  */
 
-// TODO: comment
-// TODO: FIX. Same server cannot receive from multiple separately, sequentially
-// executed clients. Disconnect might not be working right
-// TODO: ADJUST. filename output thing
+/**
+ * This class is the server that communicates with one client at a time. The
+ * server will initialize using {@link #init(String, String)}, which sets up the
+ * {@link #serverSocket} and the {@link #privateKey}. If it was able to success-
+ * fully initialize, it will call {@link #reset()} and {@link #run()}. The
+ * former simply sets up the remaining fields of the class. The latter handles
+ * the actual communication with the client. Once a client is connected, the
+ * server will accept a few different subclasses of {@link #Message.java}: the
+ * {@link #DisconnectMessage.java}, the {@link #StartMessage.java}, the
+ * {@link #StopMessage.java}, and the {@link #Chunk.java}. Regardless of the
+ * type, it will divert the work via {@link #handleMessage(Message)}. Note that
+ * the server ALWAYS responds with an {@link #AckMessage.java}, which, in my
+ * opinion, is a minor personal decision and further explanation can be found
+ * below.
+ * @author rchiang
+ */
 public class FileServer
 {
+   // server fields
+   /**
+    * The server socket, which is initialized in {@link #init(String, String)},
+    * using the parameters from {@link #FileServer(String, String)}.
+    */
    private ServerSocket serverSocket;
+   /**
+    * The server's private key, which is attained through a file provided by the
+    * user, after being generated by {@link #KPairGenerator}. It is initialized
+    * in {@link #init(String, String)}.
+    */
    private Key privateKey;
    
+   // client-dependent fields
+   /**
+    * There can only be one client connected at a time. This is instantiated in
+    * {@link #reset()} and is used for controlling a loop in {@link #run()}.
+    */
    private boolean clientConnected;
+   /**
+    * This is the unwrapped key obtained from the client's {@link
+    * #StartMessage.java}. The wrapped key is unwrapped in {@link
+    * #handleMessage(StartMessage)}. It is used to decrypt chunks sent by the
+    * client, in {@link #handleMessage(Chunk)}.
+    */
    private Key clientKey;
+   /**
+    * This field contains the next sequence number to expect. It is used to
+    * verify the sequential delivery of chunks. That is, the server will send
+    * ACKs in {@link #AckMessage.java} with this value, and it will compare this
+    * value to the sequence numbers of {@link #Chunk.java} messages.
+    */
    private int nextSeqNum;
+   /**
+    * This field simply accumulates all the bytes from the {@link #Chunk.java}
+    * messages. It is eventually output as the file in {@link #outputFile()}.
+    * 
+    * I actually initially planned to use an array of bytes, but I changed it to
+    * an ArrayList because I thought that the server is blind to the size of the
+    * file. I ended up keeping it though, due to laziness probably (and I forgot
+    * to save the first version), but this works and is more readable anyway.
+    */
    private ArrayList<Byte> allChunks;
+   /**
+    * This refers to the name of the file passed by the client through the
+    * {@link #StartMessage.java}. It is really only used to construct a string
+    * for the copy.
+    */
    private String fileName;
+   /**
+    * This is determined by the client through the {@link #StartMessage.java}.
+    * It is simply the number of chunks the file will be split into. It is used
+    * to trigger {@link #outputFile()}.
+    */
    private int fileInChunks;
    
+   /**
+    * The constructor, which will run the server if the server was able to start
+    * given the parameters or will print a message signaling the end of the
+    * program. It calls {@link #init(String, String)} to establish the server
+    * and {@link #reset()} and {@link #run()} if it was successful.
+    * @param privateKeyFile - the file name of the private key which will be
+    *       used to make the {@link #privateKey}
+    * @param listenPortNumber - the string that is an integer value that
+    *       represents the port number
+    */
    public FileServer(String privateKeyFile, String listenPortNumber)
    {
       if(init(privateKeyFile, listenPortNumber))
@@ -83,16 +158,28 @@ public class FileServer
       }
       else
       {
-         System.out.println("Could not start server. Please make sure your command line arguments are correct.");
+         System.out.println("Could not start server. "
+               + "Please make sure your command line arguments are correct.");
       }
    }
    
+   /**
+    * This method initializes the server. That is, the {@link #serverSocket} and
+    * the {@link #privateKey}, based off of the command line arguments, which
+    * are passed as the parameters for this method.
+    * @param privateKeyFile - the file name of the private key which will be
+    *       used to make the {@link #privateKey}
+    * @param listenPortNumber - the string that is an integer value that
+    *       represents the port number
+    * @return - True if it was successful. False otherwise.
+    */
    private boolean init(String privateKeyFile, String listenPortNumber)
    {
       try {
          serverSocket = new ServerSocket(Integer.parseInt(listenPortNumber));
          
-         ObjectInputStream fois = new ObjectInputStream(new FileInputStream(new File(privateKeyFile)));
+         ObjectInputStream fois = new ObjectInputStream(
+               new FileInputStream(new File(privateKeyFile)));
          privateKey = (Key) fois.readObject();
          fois.close();
       } catch (NumberFormatException e1) {
@@ -108,46 +195,9 @@ public class FileServer
       return true;
    }
 
-   private void run()
-   {
-      while (true)
-      {
-         // Client connected
-         try
-         {
-            Socket socket = serverSocket.accept();
-            String address = socket.getInetAddress().getHostAddress();
-            System.out.printf("Client connected: %s%n", address);
-            // Client will send instances of sub-classes of Message
-            // Based on type of Message, server performs different actions
-            ObjectInputStream ois = new ObjectInputStream(
-                  socket.getInputStream());
-            Message msg = null;
-            System.out.println("Beginning communications...");
-            
-            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-            
-            while (clientConnected)
-            {
-               msg = (Message) ois.readObject();
-               System.out.println("Read message of type " + msg.getType());
-               handleMessage(msg);
-               oos.writeObject(new AckMessage(nextSeqNum));
-            }
-            
-            ois.close();
-            oos.close();
-            socket.close();
-         } catch (ClassNotFoundException cnfe) {
-            cnfe.printStackTrace(System.err);
-         } catch (IOException ioe) {
-            ioe.printStackTrace(System.err);
-         } finally {
-            System.out.println("Client disconnected.");
-         }
-      }
-   }
-
+   /**
+    * This method just sets the client-dependent class fields.
+    */
    private void reset()
    {
       clientConnected = true;
@@ -158,25 +208,92 @@ public class FileServer
       fileInChunks = 0;
    }
 
+   /**
+    * This method will run forever, waiting for clients to connect. Once a
+    * client has connected, it will attempt to communicate with it by sending
+    * {@link #AckMessage.java}, with a {@link #nextSeqNum} dependent on the
+    * message it received from the client. The client's message is handled in
+    * {@link #handleMessage(Message)}. The {@link #clientConnected} controls
+    * the loop of reading and writing between the client and the server. If
+    * it is set to false, this means that the client issued a {@link
+    * #DisconnectMessage}, and subsequently, the server will terminate the
+    * socket and streams between the two.
+    */
+   private void run()
+   {
+      while (true)
+      {
+         try
+         {
+            // Client connected
+            Socket socket = serverSocket.accept();
+            String address = socket.getInetAddress().getHostAddress();
+            System.out.printf("Client connected: %s%n", address);
+            
+            // Client will send instances of sub-classes of Message
+            // Based on type of Message, server performs different actions
+            ObjectInputStream ois = new ObjectInputStream(
+                  socket.getInputStream());
+            Message msg = null;
+            
+            ObjectOutputStream oos = new ObjectOutputStream(
+                  socket.getOutputStream());
+            
+            // communicate with client
+            while (clientConnected)
+            {
+               msg = (Message) ois.readObject();
+               handleMessage(msg);
+               oos.writeObject(new AckMessage(nextSeqNum));
+            }
+            
+            // end communication
+            ois.close();
+            oos.close();
+            socket.close();
+         } catch (ClassNotFoundException cnfe) {
+            cnfe.printStackTrace(System.err);
+         } catch (IOException ioe) {
+            ioe.printStackTrace(System.err);
+         } finally {
+            System.out.println("Client disconnected.");
+            reset();
+         }
+      }
+   }
+
+   /**
+    * This method is called in {@link #handleMessage(Chunk)}. Once a chunk has
+    * been received and its data has been verified and decrypted, it adds the
+    * chunk to the accumulated {@link #allChunks}.
+    * @param outputChunk - the decrypted data from the client
+    */
    private void acceptChunk(byte[] outputChunk)
    {
       for (int i = 0; i < outputChunk.length; ++i)
       {
          allChunks.add(outputChunk[i]);
       }
-      System.out.println("Chunk received: [" + nextSeqNum + "/" + fileInChunks + "]");
+      System.out.println("Chunk received: ["
+            + (nextSeqNum + 1) + "/" + fileInChunks + "]");
    }
    
+   /**
+    * This method simply writes the file out. It is meant to be called after the
+    * chunks from the client have all been accounted for.
+    */
    private void outputFile()
    {
-      // QOL to make sure the file name does not already exist.
+      // makes sure the file name does not already exist.
       int copies = 1;
-      String outFileName = fileName.substring(0, fileName.indexOf('.')) + "-copy" + copies + ".txt";
+      String outFileName = fileName.substring(0, fileName.indexOf('.'))
+            + "-copy" + copies + ".txt";
       File f = new File(outFileName);
       while (f.exists())
       {
          ++copies;
-         outFileName = fileName.substring(0, fileName.indexOf('.')) + "-copy" + copies + ".txt";
+         outFileName = fileName.substring(0, fileName.indexOf('.'))
+               + "-copy" + copies + ".txt";
          f = new File(outFileName);
       }
       
@@ -201,6 +318,11 @@ public class FileServer
       }
    }
    
+   /**
+    * This method casts the client's message to the appropriate message handler.
+    * It is called in {@link #run()} after every object read.
+    * @param clientMsg - the message from the client
+    */
    private void handleMessage(Message clientMsg)
    {
       switch (clientMsg.getType())
@@ -218,43 +340,106 @@ public class FileServer
             handleMessage(((Chunk) clientMsg));
             break;
          default:
-            System.out.println("PAUSE and RESUME Messages are not handled by this server.");
+            System.out.println("The client's Message is not supported by this "
+                  + "server.");
             break;
       }
    }
    
+   /**
+    * This method handles messages of the type {@link #DisconnectMessage.java}.
+    * The server closes the connection by switching {@link #clientConnected} to
+    * false, which will cause it to wait for the next client to connect.
+    * 
+    * The {@link #nextSeqNum} is set to -1 because, as stated previously, I
+    * decided to have the server respond with an {@link #AckMessage.java} for
+    * every message sent by the client. This makes for very consistent and
+    * generic message-handling. Alternatively, perhaps I could keep this
+    * polymorphic message-handling and make the {@link #handleMessage(Message)}
+    * and all its related methods return a Message to write to the client or
+    * null to write nothing, or I could make the {@link #handleMessage(Message)}
+    * write the object to the client. I think both of those methods would be
+    * messy.
+    * @param clientMsg - the message from the client
+    */
    private void handleMessage(DisconnectMessage clientMsg)
    {
       nextSeqNum = -1;
       clientConnected = false;
    }
    
+   /**
+    * This method handles messages of the type {@link #StartMessage.java}. The
+    * server will prepare for a file transfer based on the information in the
+    * message. To prepare, it will unwrap the client session key using the
+    * server's {@link #privateKey}. If this works out, the {@link #nextSeqNum}
+    * will be set to 0, so it can be sent back to the client as an {@link
+    * #AckMessage.java}. If some other issue occurred, then the sequence number
+    * will be set to -1.
+    * @param clientMsg - the message from the client
+    */
    private void handleMessage(StartMessage clientMsg)
    {
       Cipher cipher;
       try {
+         // unwrap the key
          cipher = Cipher.getInstance("RSA");
          cipher.init(Cipher.UNWRAP_MODE, privateKey);
-         clientKey = cipher.unwrap(clientMsg.getEncryptedKey(), "AES", Cipher.SECRET_KEY);
+         clientKey = cipher.unwrap(
+               clientMsg.getEncryptedKey(), "AES", Cipher.SECRET_KEY);
+         
+         // set the next sequence number to 0
          nextSeqNum = 0;
+         // ready to accumulate bytes
          allChunks = new ArrayList<Byte>();
+         // retrieve the file name
          fileName = clientMsg.getFile();
-         fileInChunks = (int) Math.ceil((double) clientMsg.getSize()/clientMsg.getChunkSize());
-         System.out.println("Receiving file of size " + clientMsg.getSize());
+         // retrieve the file size
+         fileInChunks = (int) Math.ceil(
+               (double) clientMsg.getSize()/clientMsg.getChunkSize());
       } catch (NoSuchAlgorithmException e) {
          e.printStackTrace(System.err);
+         nextSeqNum = -1;
       } catch (NoSuchPaddingException e) {
          e.printStackTrace(System.err);
+         nextSeqNum = -1;
       } catch (InvalidKeyException e) {
          e.printStackTrace(System.err);
+         nextSeqNum = -1;
       }
    }
    
+   /**
+    * This handles messages of type {@link #StopMessage.java}. It was not
+    * actually specified in the project description how and when the client is
+    * able to send a StopMessage, but here is the implementation anyway. It
+    * simply resets the server's fields that depended on the file currently
+    * being transmitted without terminating communication with the client.
+    * @param clientMsg - the message from the client
+    */
    private void handleMessage(StopMessage clientMsg)
    {
       reset();
    }
    
+   /**
+    * This method handles messages of type {@link #Chunk.java}. If the file
+    * transfer has already been initiated (that is, a {@link #StartMessage.java}
+    * message has been sent to the server), then the server can attempt to
+    * accept chunks.
+    * To handle the chunks, it follows these steps:
+    *  1. The server verifies the Chunk's seqNum matches the nextSeqNum.
+    *  2. If the verification passed, the server will decrypt the Chunk's data
+    *     using the {@link #clientKey}.
+    *  3. Then it calculates the CRC32 value for the decrypted data and makes
+    *     sure that this matches with the sent CRC32 code.
+    *  4. If it passes, the server will accept the chunk by storing it with the
+    *     {@link #acceptChunk(byte[])} method, and will increment the {@link
+    *     #nextSeqNum}.
+    * Once the final chunk has been accepted, the transfer is complete, so the
+    * file will be created with {@link #outputFile()}.
+    * @param clientMsg - the message from the client
+    */
    private void handleMessage(Chunk clientMsg)
    {
       if (clientKey != null)
@@ -274,7 +459,6 @@ public class FileServer
                Checksum crc32 = new CRC32();
                crc32.update(outputChunk, 0, outputChunk.length);
                long errorCode = crc32.getValue();
-               //System.out.println((int) errorCode + " ? " + ((Chunk) msg).getCrc());
                // compare it with the CRC32 value included in the chunk
                if (clientMsg.getCrc() == ((int) errorCode))
                {
@@ -294,8 +478,8 @@ public class FileServer
             }
          }
          
-         // after the client has finished sending chunks, client can begin a new file
-         // transfer or disconnect
+         // after the client has finished sending chunks, client can begin a
+         // new file transfer or disconnect
          if (nextSeqNum == fileInChunks)
          {
             outputFile();

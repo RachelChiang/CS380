@@ -1,3 +1,8 @@
+/*
+ * Rachel Chiang
+ * CS 380.01 Computer Networks
+ * Project 7: File Transfer (Encryption)
+ */
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -8,12 +13,12 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
+/**
+ * This class contains code written by Pantic. It generates a public/private RSA
+ * key pair and writes them in serialized forms to public.bin and private.bin.
+ */
 public class KPairGenerator
 {
-   /*
-    * generate a public/private RSA key pair, written in serialized forms to
-    * files public.bin and private.bin, then exit
-    */
    public void makeKeyPair()
    {
       try
