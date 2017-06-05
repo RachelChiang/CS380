@@ -58,20 +58,21 @@ import javax.crypto.NoSuchPaddingException;
         (where n is the total number of chunks in the file).
  */
 
-// TODO: comment, organize
+// TODO: comment
 // TODO: FIX. Same server cannot receive from multiple separately, sequentially
 // executed clients. Disconnect might not be working right
-// TODO: Make sure same client can transmit more than one file
+// TODO: ADJUST. filename output thing
 public class FileServer
 {
    private ServerSocket serverSocket;
    private Key privateKey;
+   
+   private boolean clientConnected;
    private Key clientKey;
    private int nextSeqNum;
    private ArrayList<Byte> allChunks;
    private String fileName;
    private int fileInChunks;
-   private boolean clientConnected;
    
    public FileServer(String privateKeyFile, String listenPortNumber)
    {
@@ -107,56 +108,14 @@ public class FileServer
       return true;
    }
 
-   private void acceptChunk(byte[] outputChunk)
-   {
-      for (int i = 0; i < outputChunk.length; ++i)
-      {
-         allChunks.add(outputChunk[i]);
-      }
-      System.out.println("Chunk received: [" + nextSeqNum + "/" + fileInChunks + "]");
-   }
-   
-   private void outputFile()
-   {
-      fileName = fileName.substring(0, fileName.indexOf('.')) + "2.txt";
-      System.out.println("Transfer complete.");
-      System.out.println("Output path: " + fileName);
-      try {
-         FileOutputStream fos = new FileOutputStream(new File(fileName));
-         
-         byte[] fileArray = new byte[allChunks.size()];
-         for (int i = 0; i < fileArray.length; ++i)
-         {
-            fileArray[i] = allChunks.get(i);
-         }
-         
-         fos.write(fileArray);
-         
-         fos.close();
-      } catch (FileNotFoundException e) {
-         e.printStackTrace(System.err);
-      } catch (IOException e) {
-         e.printStackTrace(System.err);
-      }
-   }
-   
-   private void reset()
-   {
-      clientKey = null;
-      nextSeqNum = -1;
-      fileInChunks = 0;
-      allChunks = null;
-      fileName = "";
-      clientConnected = true;
-   }
-   
    private void run()
    {
       while (true)
       {
          // Client connected
-         try (Socket socket = serverSocket.accept())
+         try
          {
+            Socket socket = serverSocket.accept();
             String address = socket.getInetAddress().getHostAddress();
             System.out.printf("Client connected: %s%n", address);
             // Client will send instances of sub-classes of Message
@@ -164,7 +123,6 @@ public class FileServer
             ObjectInputStream ois = new ObjectInputStream(
                   socket.getInputStream());
             Message msg = null;
-            //wantContinue = true;
             System.out.println("Beginning communications...");
             
             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
@@ -184,7 +142,62 @@ public class FileServer
             cnfe.printStackTrace(System.err);
          } catch (IOException ioe) {
             ioe.printStackTrace(System.err);
+         } finally {
+            System.out.println("Client disconnected.");
          }
+      }
+   }
+
+   private void reset()
+   {
+      clientConnected = true;
+      clientKey = null;
+      nextSeqNum = -1;
+      allChunks = null;
+      fileName = "";
+      fileInChunks = 0;
+   }
+
+   private void acceptChunk(byte[] outputChunk)
+   {
+      for (int i = 0; i < outputChunk.length; ++i)
+      {
+         allChunks.add(outputChunk[i]);
+      }
+      System.out.println("Chunk received: [" + nextSeqNum + "/" + fileInChunks + "]");
+   }
+   
+   private void outputFile()
+   {
+      // QOL to make sure the file name does not already exist.
+      int copies = 1;
+      String outFileName = fileName.substring(0, fileName.indexOf('.')) + "-copy" + copies + ".txt";
+      File f = new File(outFileName);
+      while (f.exists())
+      {
+         ++copies;
+         outFileName = fileName.substring(0, fileName.indexOf('.')) + "-copy" + copies + ".txt";
+         f = new File(outFileName);
+      }
+      
+      System.out.println("Transfer complete.");
+      System.out.println("Output path: " + outFileName);
+      try {
+         FileOutputStream fos = new FileOutputStream(new File(outFileName));
+         
+         byte[] fileArray = new byte[allChunks.size()];
+         for (int i = 0; i < fileArray.length; ++i)
+         {
+            fileArray[i] = allChunks.get(i);
+         }
+         
+         fos.write(fileArray);
+         
+         fos.close();
+      } catch (FileNotFoundException e) {
+         e.printStackTrace(System.err);
+      } catch (IOException e) {
+         e.printStackTrace(System.err);
       }
    }
    
@@ -212,6 +225,7 @@ public class FileServer
    
    private void handleMessage(DisconnectMessage clientMsg)
    {
+      nextSeqNum = -1;
       clientConnected = false;
    }
    
